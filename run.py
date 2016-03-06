@@ -10,14 +10,24 @@ from nltk.stem import *
 
 input_file = open('shakespeare.txt')
 train = []
+sonnet = ""
+num_lines = 0
 for line in input_file.readlines():
-    sonnet = []
-    num_lines = 0
     print line
+    # Between sonnets
     if line == "\n":
-        pass
+        # If there is the wrong number of lines, skip
+        if num_lines == 15:
+            train.append(sonnet)
+        num_lines = 0
+        sonnet = ""
+    # Add line to sonnet
     else:
-        pass
+        # First line is just a number
+        if num_lines != 0:
+            sonnet += line
+        num_lines += 1
+
 
 def review_to_words( raw_review ):
     # Function to convert a raw review to a string of words
