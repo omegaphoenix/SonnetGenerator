@@ -12,13 +12,15 @@ input_file = open('shakespeare.txt')
 train = []
 sonnet = ""
 num_lines = 0
+# Fill train with the training examples
 for line in input_file.readlines():
-    print line
     # Between sonnets
-    if line == "\n":
+    if line in ['\n', '\r\n']:
         # If there is the wrong number of lines, skip
         if num_lines == 15:
             train.append(sonnet)
+        else:
+            print num_lines
         num_lines = 0
         sonnet = ""
     # Add line to sonnet
@@ -28,37 +30,40 @@ for line in input_file.readlines():
             sonnet += line
         num_lines += 1
 
-
-def review_to_words( raw_review ):
-    # Function to convert a raw review to a string of words
-    # The input is a single string (a raw movie review), and 
-    # the output is a single string (a preprocessed movie review)
+def sonnet_to_words( raw_sonnet ):
+    # Function to remove non-letters
     #
     # 1. Remove HTML
-    review_text = BeautifulSoup(raw_review).get_text() 
+    #review_text = BeautifulSoup(raw_sonnet).get_text()
     #
-    # 2. Remove non-letters        
-    letters_only = re.sub("[^a-zA-Z]", " ", review_text) 
+    # 2. Remove non-letters
+    letters_only = re.sub("[^a-zA-Z]", " ", raw_sonnet)
     #
     # 3. Convert to lower case, split into individual words
-    words = letters_only.lower().split()                             
+    words = letters_only.lower().split()
+    #
+    # 4. Join the words back into one string separated by space,
+    # and return the result.
+    return( " ".join( words ))
 
-# Get the number of reviews based on the dataframe column size
-#num_reviews = train["review"].size
 
-# Initialize an empty list to hold the clean reviews
+# Get the number of sonnets 
+num_sonnets = len(train)
+
+# Initialize an empty list to hold the clean sonnets
 clean_train_sonnets = []
 
 # Loop over each review; create an index i that goes from 0 to the length
 # of the movie review list 
-"""for i in xrange( 0, num_reviews ):
+for i in xrange( 0, num_sonnets ):
     if( (i+1)%1000 == 0 ):
-        print "Review %d of %d\n" % ( i+1, num_reviews )
+        print "Sonnet %d of %d\n" % ( i+1, num_reviews )
     # Call our function for each one, and add the result to the list of
     # clean reviews
-    clean_train_reviews.append( review_to_words( train["review"][i]))
+    clean_train_sonnets.append( sonnet_to_words( train[i]))
 
-print "Creating the bag of words...\n"
+print clean_train_sonnets
+"""print "Creating the bag of words...\n"
 from sklearn.feature_extraction.text import CountVectorizer
 
 # Initialize the "CountVectorizer" object, which is scikit-learn's
