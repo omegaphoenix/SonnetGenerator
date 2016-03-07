@@ -1,82 +1,86 @@
-# Import the pandas package, then use the "read_csv" function to read
-# the labeled training data
-import pandas as pd       
-# Import BeautifulSoup into your workspace
-from bs4 import BeautifulSoup             
 import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import *
+import string
 
-input_file = open('shakespeare.txt')
-train = []
-sonnet = ""
-num_lines = 0
-# Fill train with the training examples
-for line in input_file.readlines():
-    # Between sonnets
-    if line in ['\n', '\r\n']:
-        # If there is the wrong number of lines, skip
-        if num_lines == 15:
-            train.append(sonnet)
+# I deleted pandas and beautifulSoup because I didn't think we needed
+# it just yet. I could be wrong though.
+
+# Parsing a collection of sonnets into an aggregated array
+# of words.
+def parseStringToWords(trainingArray):
+    aggregatedWords = []
+
+    for sonnet in trainingArray:
+        sonnetWords = sonnet.split()
+        aggregatedWords.extend(sonnetWords)
+        aggregatedWords.append("\n")
+
+    return aggregatedWords
+
+# Taking an array of words, and outputting it into a designated text file.
+def writeToFile(outFile, words):
+    outputFile = open(outFile, 'w')
+
+    for word in words:
+        if word != "\n":
+            outputFile.write(word + "\n")
         else:
-            print num_lines
-        num_lines = 0
-        sonnet = ""
-    # Add line to sonnet
-    else:
-        # First line is just a number
-        if num_lines != 0:
-            sonnet += line.strip()
-        num_lines += 1
+            outputFile.write(word)
+    outputFile.close()
 
-<<<<<<< HEAD
-def sonnet_to_words( raw_sonnet ):
-    # Function to remove non-letters
-    #
-    # 1. Remove HTML
-    #review_text = BeautifulSoup(raw_sonnet).get_text()
-    #
-    # 2. Remove non-letters
-    letters_only = re.sub("[^a-zA-Z]", " ", raw_sonnet)
-    #
-    # 3. Convert to lower case, split into individual words
-    words = letters_only.lower().split()
-    #
-    # 4. Join the words back into one string separated by space,
-    # and return the result.
-    return( " ".join( words ))
+# Reading in a file, and parsing it so that each sonnet occupies an
+# index in the array.
+def readInFile(inFile):
+    input_file = open(inFile, 'r')
 
+    # Each index contains a sonnet, with punctuation and capitalization stripped.
+    train = []
 
-# Get the number of sonnets 
-num_sonnets = len(train)
+    # String buffer to capture the stuff.
+    sonnet = ""
 
-# Initialize an empty list to hold the clean sonnets
-clean_train_sonnets = []
+    num_lines = 0
 
-# Loop over each review; create an index i that goes from 0 to the length
-# of the movie review list 
-for i in xrange( 0, num_sonnets ):
-    if( (i+1)%1000 == 0 ):
-        print "Sonnet %d of %d\n" % ( i+1, num_reviews )
-    # Call our function for each one, and add the result to the list of
-    # clean reviews
-    clean_train_sonnets.append( sonnet_to_words( train[i]))
+    # Fill train with the training examples
+    for line in input_file.readlines():
 
-print clean_train_sonnets
-"""print "Creating the bag of words...\n"
-from sklearn.feature_extraction.text import CountVectorizer
+        # Between sonnets
+        if line in ['\n', '\r\n']:
 
-# Initialize the "CountVectorizer" object, which is scikit-learn's
-# bag of words tool.  
-vectorizer = CountVectorizer(analyzer = "word",   \
-                             tokenizer = None,    \
-                             preprocessor = None, \
-                             stop_words = None,   \
-                             max_features = 5000) 
+            # If there is the wrong number of lines, skip
+            if num_lines == 14:
 
-# fit_transform() does two functions: First, it fits the model
-# and learns the vocabulary; second, it transforms our training data
-# into feature vectors. The input to fit_transform should be a list of 
-# strings.
-train_data_features = vectorizer.fit_transform(clean_train_reviews)"""
+                # makeTrans will just remove all punctuation from
+                # the words. This solves the apostrophe problems.
+                train.append(sonnet.translate(string.maketrans("",""),\
+                                              string.punctuation))
+
+            num_lines = 0
+            sonnet = ""
+
+        # Add line to sonnet
+        else:
+
+            # Ignoring lines that are numbers.
+            if len(line.strip().split()) != 1:
+
+                # Since maketrans removes all punctuation
+                # we will have two lines connected. So,
+                # each line will end with a space to make sure that
+                # doesn't happen.
+                sonnet += line.lower().strip() + " "
+                num_lines += 1
+
+    input_file.close()
+    return train
+
+# Running the script
+sonnets = readInFile('shakespeare.txt')
+words = parseStringToWords(sonnets)
+writeToFile('shakespeareWords.txt', words)
+
+spenserSonnets = readInFile('spenser.txt')
+spenserWords = parseStringToWords(spenserSonnets)
+writeToFile('spenserWords.txt', spenserWords)
