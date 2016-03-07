@@ -27,9 +27,10 @@ for line in input_file.readlines():
     else:
         # First line is just a number
         if num_lines != 0:
-            sonnet += line
+            sonnet += line.strip()
         num_lines += 1
 
+<<<<<<< HEAD
 def sonnet_to_words( raw_sonnet ):
     # Function to remove non-letters
     #
