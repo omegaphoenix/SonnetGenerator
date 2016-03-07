@@ -1,4 +1,5 @@
 # Based on solution to HW4 provided by Fabian Boemer and Kevin Tang
+import numpy as np
 
 def main():
 
@@ -81,7 +82,7 @@ def viterbi(states, obs, A, O):
     return seq[len_ - 1][max_ind]
 
 
-def forward(num_states, obs, A, O):
+def forward(num_states, obs, A, O, pi):
     """Computes the probability a given HMM emits a given observation using the
         forward algorithm. This uses a dynamic programming approach, and uses
         the 'prob' matrix to store the probability of the sequence at each length.
@@ -89,37 +90,56 @@ def forward(num_states, obs, A, O):
                    obs        an array of observations
                    A          the transition matrix
                    O          the observation matrix
-        Returns the probability of the observed sequence 'obs'
     """
     len_ = len(obs)                   # number of observations
     # stores p(seqence)
-    prob = [[[0.] for i in range(num_states)] for i in range(len_)]
+    #prob = [[[0.] for i in range(num_states)] for i in range(len_)]
+    alpha = np.zeros((len_, num_states))
 
     # initializes uniform state distribution, factored by the
     # probability of observing the sequence from the state (given by the
     # observation matrix)
-    prob[0] = [(1. / num_states) * O[j][obs[0]] for j in range(num_states)]
+    #prob[0] = [(1. / num_states) * O[j][obs[0]] for j in range(num_states)]
+    alpha[0, :] = pi * O[:,observations[0]]
 
     # We iterate through all indices in the data
     for length in range(1, len_):   # length + 1 to avoid initial condition
         for state in range(num_states):
             # stores the probability of transitioning to 'state'
-            p_trans = 0
+            #p_trans = 0
 
             # probabilty of observing data in our given 'state'
-            p_obs = O[state][obs[length]]
+            #p_obs = O[state][obs[length]]
 
             # We iterate through all possible previous states, and update
             # p_trans accordingly.
             for prev_state in range(num_states):
-                p_trans += prob[length - 1][prev_state] * A[prev_state][state]
+                #p_trans += prob[length - 1][prev_state] * A[prev_state][state]
+                alpha[length, state] += alpha[length-1, prev_state] * a[prev_state, state] * O[state, observations[i]]
 
-            prob[length][state] = p_trans * p_obs  # update probability
+            #prob[length][state] = p_trans * p_obs  # update probability
 
-        prob[length] = prob[length][:]  # copies by value
+        #prob[length] = prob[length][:]  # copies by value
 
     # return total probability
-    return sum(prob[len_ - 1])
+    #return sum(prob[len_ - 1])
+    return (alpha, np.sum(alpha[N-1,:]))
+
+def backward(num_states, obs, A, O, pi):
+    """ Computes the probability a given HMM emits a given oservation using the
+        backward algorithm. This uses a dynamic programming approach
+    """
+    len_ = len(obs)
+    beta = np.zeros((len_, num_states))
+    # Base case - last beta is 1
+    beta[len_-1, :] = 1
+    # Calculate rest of beta
+    for i in range(len_-2, -1, -1):
+        for s1 in range(num_states):
+            for s2 in range(num_states):
+                beta[i, s1] += beta[i+1,s2] * A[s1, s2] * O[s2, observations[i+1]]
+
+    return (beta, np.sum(pi * O[:, obs[0]]*beta[0,:]))
 
 if __name__ == '__main__':
     main()
