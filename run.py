@@ -13,9 +13,8 @@ train = []
 sonnet = ""
 num_lines = 0
 for line in input_file.readlines():
-    print line
     # Between sonnets
-    if line == "\n":
+    if line.strip() == "":
         # If there is the wrong number of lines, skip
         if num_lines == 15:
             train.append(sonnet)
@@ -25,9 +24,13 @@ for line in input_file.readlines():
     else:
         # First line is just a number
         if num_lines != 0:
-            sonnet += line
+            sonnet += line.strip()
         num_lines += 1
 
+# Right now, we've got lines, but if we want actual words, then
+# We can take a look at actual words by just splitting things even further.
+# Currently, I'm not too sure how to approach unsupervised learning with
+# just words, but...
 
 def review_to_words( raw_review ):
     # Function to convert a raw review to a string of words
