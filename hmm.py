@@ -16,8 +16,21 @@ def test():
     pi = np.array([0.5, 0.2, 0.3])
     O = np.array([[0.7, 0.1, 0.2], [0.1, 0.6, 0.3], [0.3, 0.3, 0.4]])
     print forward([UP, UP, DOWN], A, O, pi)
+    print "0.054397999999999995"
     print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O, pi)
-    print backward(len(states), [UP, UP, DOWN], A, O, pi)
+    print "0.00023980534876400081"
+    print backward([UP, UP, DOWN], A, O, pi)
+    print "0.054397999999999995"
+    pi2, A2, O2 = baum_welch([[UP, UP, DOWN]], A, O, pi, 10)
+    print forward([UP, UP, DOWN], A2, O2, pi2)
+    print "0.47208638604110348"
+    print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A2, O2, pi2)
+    print "0.0"
+    pi3, A3, O3 = baum_welch([[UP, UP, DOWN], [UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP]], A, O, pi, 10)
+    print forward([UP, UP, DOWN], A3, O3, pi3)
+    print "0.23645963152993088"
+    print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A3, O3, pi3)
+    print "0.004774564161046658"
 
 
 def loadHMM(filename):
@@ -136,19 +149,26 @@ def forward(obs, A, O, pi):
         C_normalize = sum(alpha[length, :])
         if C_normalize != 0:
             alpha[length, :] = alpha[length, :] / C_normalize
-            probability *= C_normalize
+        probability *= C_normalize
 
     # return total probability
     return (alpha,probability) 
+    # Unnormalized case
+    #return (alpha,sum(alpha[len_-1,:])) 
 
-def backward(num_states, obs, A, O, pi):
+def backward(obs, A, O, pi):
     """ Computes the probability a given HMM emits a given oservation using the
         backward algorithm. This uses a dynamic programming approach
     """
     len_ = len(obs)
+    num_states = pi.shape[0]
     beta = np.zeros((len_, num_states))
     # Base case - last beta is 1
-    beta[len_-1, :] = 1.0/num_states
+    beta[len_-1, :] = 1.0
+    C_normalize = sum(beta[len_-1, :])
+    if C_normalize != 0:
+        beta[len_-1, :] = beta[len_-1, :] / C_normalize
+        probability = C_normalize
     # Calculate rest of beta
     for i in range(len_-2, -1, -1):
         for s1 in range(num_states):
@@ -158,8 +178,11 @@ def backward(num_states, obs, A, O, pi):
         C_normalize = sum(beta[i, :])
         if C_normalize != 0:
             beta[i, :] = beta[i, :] / C_normalize
+            probability *= C_normalize
 
-    return (beta, np.sum(pi * O[:, obs[0]]*beta[0,:]))
+    return (beta, probability*np.sum(pi * O[:, obs[0]] * beta[0,:]))
+    # Unnormalized case
+    #return (beta, np.sum(pi * O[:, obs[0]] * beta[0,:]))
 
 
 def baum_welch(training, A, O, pi, iterations):
@@ -167,28 +190,28 @@ def baum_welch(training, A, O, pi, iterations):
     num_states = pi.shape[0]
 
     for step in range(iterations):
-        Al = np.zeros_like(A)
+        A1 = np.zeros_like(A)
         O1 = np.zeros_like(O)
         pi1 = np.zeros_like(pi)
 
         for obs in training:
             # E-step - Compute forward-backward
-            alpha, za = forward(num_states, obs, A, O, pi)
-            beta, zb = backward(num_states, obs, A, O, pi)
+            alpha, za = forward(obs, A, O, pi)
+            beta, zb = backward(obs, A, O, pi)
             assert abs(za - zb) <1e-6, "marginals don't agree"
 
             # M-step - maximum likelihood estimate
             pi1 += alpha[0,:] * beta[0,:] / za
             for i in range(0, len(obs)):
-                O1[:, observations[i]] += alpha[i,:] * beta[i,:] / za
+                O1[:, obs[i]] += alpha[i,:] * beta[i,:] / za
             for i in range(1, len(obs)):
-                for s1 in range(S):
-                    for s2 in range(S):
+                for s1 in range(num_states):
+                    for s2 in range(num_states):
                         A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]/za
         # normalize
         pi = pi1 / np.sum(pi1)
-        for s in range(S):
-            A[s, :] = Al[s,:] / np.sum(Al[s,:])
+        for s in range(num_states):
+            A[s, :] = A1[s,:] / np.sum(A1[s,:])
             O[s, :] = O1[s, :] / np.sum(O1[s, :])
     return pi, A, O
 
