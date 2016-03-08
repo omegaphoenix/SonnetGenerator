@@ -127,6 +127,7 @@ def forward(obs, A, O, pi):
     len_ = len(obs)                   # number of observations
     num_states = pi.shape[0]
     alpha = np.zeros((len_, num_states))
+    # Base case
     alpha[0, :] = pi * O[:,obs[0]]
     probability = 1
     C_normalize = sum(alpha[0, :])
@@ -134,7 +135,7 @@ def forward(obs, A, O, pi):
         alpha[0, :] = alpha[0, :] / C_normalize
         probability *= C_normalize
 
-    # We iterate through all indices in the data
+    # We iterate through all indices in the data and use dynamic programming to update
     for length in range(1, len_):   # length + 1 to avoid initial condition
         for state in range(num_states):
             for prev_state in range(num_states):
@@ -198,7 +199,7 @@ def baum_welch(training, A, O, pi, iterations):
             # E-step - Compute forward-backward
             alpha, za = forward(obs, A, O, pi)
             beta, zb = backward(obs, A, O, pi)
-            assert abs(za - zb) <1e-6, "marginals don't agree"
+            assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
             pi1 += alpha[0,:] * beta[0,:] / za
