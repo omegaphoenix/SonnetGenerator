@@ -1,5 +1,7 @@
 # Based on solution to HW4 provided by Fabian Boemer and Kevin Tang
 import numpy as np
+import random
+from sklearn.preprocessing import normalize
 
 def main():
     pass
@@ -62,9 +64,21 @@ def loadHMM(filename):
             sequences.append([int(x) for x in list(f.readline().strip())])
     return (A, O, sequences)
 
-def randomlyInitialize(num_states):
-    A = 0
-    O = 0
+def randomlyInitialize(num_states, num_obs):
+    A = np.zeros((num_states, num_states))
+    O = np.zeros((num_states, num_obs))
+
+    # Randomizing each row.
+    for elem in np.nditer(A, op_flags=['readwrite']):
+        elem[...] = random.uniform(0, 1)
+
+    for elem in np.nditer(O, op_flags=['readwrite']):
+        elem[...] = random.uniform(0, 1)
+
+    # Normalizing each row.
+    A = normalize(A, axis=1, norm='l1')
+    O = normalize(O, axis=1, norm='l1')
+
     return (A, O)
 
 
@@ -216,5 +230,75 @@ def baum_welch(training, A, O, pi, iterations):
             O[s, :] = O1[s, :] / np.sum(O1[s, :])
     return pi, A, O
 
+# Generating two dictionaries (we probably only need one but oh well).
+def generateMaps(sonnets):
+    wordMap = {}
+    intMap = {}
+    counter = 0
+    setOfWords = []
+
+    for sonnet in sonnets:
+        for word in sonnet:
+            word = word.strip()
+            if word not in setOfWords:
+                wordMap[word] = counter
+                intMap[counter] = word
+                counter += 1
+                setOfWords.append(word)
+
+    return (wordMap, intMap)
+
+# Mapping the string words into integers. This is how we will tokenize things.
+def mapWordToInt(sonnets, wordMap):
+    newDataSet = []
+
+    for sonnet in sonnets:
+        intSonnet = []
+        for word in sonnet:
+            intRepresentation = wordMap[word]
+            intSonnet.append(intRepresentation)
+        newDataSet.append(intSonnet)
+    return newDataSet
+
+# Mapping integers to word. This is how we find out our poem.
+def mapIntToWord(line, intMap):
+    lineTransp = line.T.tolist()
+    print lineTransp
+    oneLine = []
+    for word in lineTransp[0]:
+        wordRepresentation = intMap[word]
+        oneLine.append(wordRepresentation)
+    return oneLine
+
+# Extracting data here.
+def getData(inFile):
+    dataFile = open(inFile, 'r')
+
+    totalData = []
+    sonnet = []
+
+    # Any time there is a "\n", we then make a new list.
+    for line in dataFile.readlines():
+        if line != "\n":
+            sonnet.append(line.strip())
+
+        else:
+            totalData.append(sonnet)
+            sonnet = []
+
+    return totalData
+
 if __name__ == '__main__':
-    test()
+    trainingWords = getData("shakespeareWords.txt")
+    wordMap, intMap = generateMaps(trainingWords)
+
+    trainingSequence = mapWordToInt(trainingWords)
+    numObs = len(wordMap)
+
+    # A, O are randomly initialized based on the number of states
+    # and observations.
+    A, O = randomlyInitialize(10, numObs)
+
+    print A
+    print O
+    #test()

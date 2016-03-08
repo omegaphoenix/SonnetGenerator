@@ -4,7 +4,7 @@ from hmmlearn import hmm
 # Gonna try to generate a random poem.
 # Using only Shakespearean stuff at first.
 
-np.random.seed(42)
+np.random.seed(55)
 
 def getData(inFile):
     dataFile = open(inFile, 'r')
