@@ -2,6 +2,7 @@
 import numpy as np
 
 def main():
+    pass
 
 def loadHMM(filename):
     """ Loads a HMM file. Returns in format A, O, sequences
@@ -21,8 +22,10 @@ def loadHMM(filename):
             sequences.append([int(x) for x in list(f.readline().strip())])
     return (A, O, sequences)
 
-def randomlyInitialize():
-    pass
+def randomlyInitialize(num_states):
+    A = 0
+    O = 0
+    return (A, O)
 
 
 def viterbi(states, obs, A, O):
@@ -116,10 +119,15 @@ def forward(num_states, obs, A, O, pi):
             for prev_state in range(num_states):
                 #p_trans += prob[length - 1][prev_state] * A[prev_state][state]
                 alpha[length, state] += alpha[length-1, prev_state] * a[prev_state, state] * O[state, observations[i]]
+    
 
-            #prob[length][state] = p_trans * p_obs  # update probability
-
-        #prob[length] = prob[length][:]  # copies by value
+            #prob[length] = prob[length][:]  # copies by value
+        #prob[length][state] = p_trans * p_obs  # update probability
+        
+        # Normalize to prevent underflow 
+        C_normalize = sum(alpha[length, :])
+        if C_normalize != 0:
+            alpha[length, :] = alpha[length, :] / C_normalize
 
     # return total probability
     #return sum(prob[len_ - 1])
@@ -138,6 +146,10 @@ def backward(num_states, obs, A, O, pi):
         for s1 in range(num_states):
             for s2 in range(num_states):
                 beta[i, s1] += beta[i+1,s2] * A[s1, s2] * O[s2, observations[i+1]]
+        # Normalize to prevent underflow 
+        C_normalize = sum(beta[i, :])
+        if C_normalize != 0:
+            beta[i, :] = beta[i, :] / C_normalize
 
     return (beta, np.sum(pi * O[:, obs[0]]*beta[0,:]))
 
@@ -152,12 +164,12 @@ def baum_welch(training, A, O, pi, iterations):
         pi1 = np.zeros_like(pi)
 
         for obs in training:
-            # Compute forward-backward
+            # E-step - Compute forward-backward
             alpha, za = forward(num_states, obs, A, O, pi)
             beta, zb = backward(num_states, obs, A, O, pi)
             assert abs(za - zb) <1e-6, "marginals don't agree"
 
-            # M-step
+            # M-step - maximum likelihood estimate
             pi1 += alpha[0,:] * beta[0,:] / za
             for i in range(0, len(obs)):
                 O1[:, observations[i]] += alpha[i,:] * beta[i,:] / za
