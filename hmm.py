@@ -4,6 +4,22 @@ import numpy as np
 def main():
     pass
 
+def test():
+    A = np.array([[0.6, 0.2, 0.2], [0.5, 0.3, 0.2], [0.4, 0.1, 0.5]])
+    pi = np.array([0.5, 0.2, 0.3])
+    O = np.array([[0.7, 0.1, 0.2], [0.1, 0.6, 0.3], [0.3, 0.3, 0.4]])
+    states = UP, DOWN, UNCHANGED = 0, 1, 2
+    observations = [UP, UP, DOWN]
+    print viterbi(len(states), [UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O)
+    print "00222200"
+    A = np.array([[0.6, 0.2, 0.2], [0.5, 0.3, 0.2], [0.4, 0.1, 0.5]])
+    pi = np.array([0.5, 0.2, 0.3])
+    O = np.array([[0.7, 0.1, 0.2], [0.1, 0.6, 0.3], [0.3, 0.3, 0.4]])
+    print forward([UP, UP, DOWN], A, O, pi)
+    print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O, pi)
+    print backward(len(states), [UP, UP, DOWN], A, O, pi)
+
+
 def loadHMM(filename):
     """ Loads a HMM file. Returns in format A, O, sequences
     """
@@ -85,7 +101,7 @@ def viterbi(states, obs, A, O):
     return seq[len_ - 1][max_ind]
 
 
-def forward(num_states, obs, A, O, pi):
+def forward(obs, A, O, pi):
     """Computes the probability a given HMM emits a given observation using the
         forward algorithm. This uses a dynamic programming approach, and uses
         the 'prob' matrix to store the probability of the sequence at each length.
@@ -95,43 +111,35 @@ def forward(num_states, obs, A, O, pi):
                    O          the observation matrix
     """
     len_ = len(obs)                   # number of observations
-    # stores p(seqence)
-    #prob = [[[0.] for i in range(num_states)] for i in range(len_)]
+    num_states = pi.shape[0]
     alpha = np.zeros((len_, num_states))
 
     # initializes uniform state distribution, factored by the
     # probability of observing the sequence from the state (given by the
     # observation matrix)
     #prob[0] = [(1. / num_states) * O[j][obs[0]] for j in range(num_states)]
-    alpha[0, :] = pi * O[:,observations[0]]
+    alpha[0, :] = pi * O[:,obs[0]]
+    probability = 1
+    C_normalize = sum(alpha[0, :])
+    if C_normalize != 0:
+        alpha[0, :] = alpha[0, :] / C_normalize
+        probability *= C_normalize
 
     # We iterate through all indices in the data
     for length in range(1, len_):   # length + 1 to avoid initial condition
         for state in range(num_states):
-            # stores the probability of transitioning to 'state'
-            #p_trans = 0
-
-            # probabilty of observing data in our given 'state'
-            #p_obs = O[state][obs[length]]
-
-            # We iterate through all possible previous states, and update
-            # p_trans accordingly.
             for prev_state in range(num_states):
-                #p_trans += prob[length - 1][prev_state] * A[prev_state][state]
-                alpha[length, state] += alpha[length-1, prev_state] * a[prev_state, state] * O[state, observations[i]]
+                alpha[length, state] += alpha[length-1, prev_state] * A[prev_state, state] * O[state, obs[length]]
     
 
-            #prob[length] = prob[length][:]  # copies by value
-        #prob[length][state] = p_trans * p_obs  # update probability
-        
         # Normalize to prevent underflow 
         C_normalize = sum(alpha[length, :])
         if C_normalize != 0:
             alpha[length, :] = alpha[length, :] / C_normalize
+            probability *= C_normalize
 
     # return total probability
-    #return sum(prob[len_ - 1])
-    return (alpha, np.sum(alpha[N-1,:]))
+    return (alpha,probability) 
 
 def backward(num_states, obs, A, O, pi):
     """ Computes the probability a given HMM emits a given oservation using the
@@ -140,12 +148,12 @@ def backward(num_states, obs, A, O, pi):
     len_ = len(obs)
     beta = np.zeros((len_, num_states))
     # Base case - last beta is 1
-    beta[len_-1, :] = 1
+    beta[len_-1, :] = 1.0/num_states
     # Calculate rest of beta
     for i in range(len_-2, -1, -1):
         for s1 in range(num_states):
             for s2 in range(num_states):
-                beta[i, s1] += beta[i+1,s2] * A[s1, s2] * O[s2, observations[i+1]]
+                beta[i, s1] += beta[i+1,s2] * A[s1, s2] * O[s2, obs[i+1]]
         # Normalize to prevent underflow 
         C_normalize = sum(beta[i, :])
         if C_normalize != 0:
@@ -185,4 +193,4 @@ def baum_welch(training, A, O, pi, iterations):
     return pi, A, O
 
 if __name__ == '__main__':
-    main()
+    test()
