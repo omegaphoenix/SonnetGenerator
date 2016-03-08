@@ -141,5 +141,36 @@ def backward(num_states, obs, A, O, pi):
 
     return (beta, np.sum(pi * O[:, obs[0]]*beta[0,:]))
 
+
+def baum_welch(training, A, O, pi, iterations):
+    A, O, pi = np.copy(A), np.copy(O), np.copy(pi)
+    num_states = pi.shape[0]
+
+    for step in range(iterations):
+        Al = np.zeros_like(A)
+        O1 = np.zeros_like(O)
+        pi1 = np.zeros_like(pi)
+
+        for obs in training:
+            # Compute forward-backward
+            alpha, za = forward(num_states, obs, A, O, pi)
+            beta, zb = backward(num_states, obs, A, O, pi)
+            assert abs(za - zb) <1e-6, "marginals don't agree"
+
+            # M-step
+            pi1 += alpha[0,:] * beta[0,:] / za
+            for i in range(0, len(obs)):
+                O1[:, observations[i]] += alpha[i,:] * beta[i,:] / za
+            for i in range(1, len(obs)):
+                for s1 in range(S):
+                    for s2 in range(S):
+                        A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]/za
+        # normalize
+        pi = pi1 / np.sum(pi1)
+        for s in range(S):
+            A[s, :] = Al[s,:] / np.sum(Al[s,:])
+            O[s, :] = O1[s, :] / np.sum(O1[s, :])
+    return pi, A, O
+
 if __name__ == '__main__':
     main()
