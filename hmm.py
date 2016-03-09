@@ -2,6 +2,7 @@
 import numpy as np
 import random
 from sklearn.preprocessing import normalize
+from itertools import chain
 
 def main():
     pass
@@ -288,17 +289,28 @@ def getData(inFile):
 
     return totalData
 
+# This will assume uniform probability initial state.
+def generateStartProb(numStates):
+    initProb = 1 / float(numStates)
+    pi = np.array([initProb for i in range(numStates)])
+    return pi
+
 if __name__ == '__main__':
     trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap = generateMaps(trainingWords)
 
-    trainingSequence = mapWordToInt(trainingWords)
+    trainingSequence = mapWordToInt(trainingWords, wordMap)
     numObs = len(wordMap)
 
     # A, O are randomly initialized based on the number of states
     # and observations.
     A, O = randomlyInitialize(10, numObs)
+    pi = generateStartProb(10)
 
-    print A
-    print O
+    # Now, going to try to run baum_welch
+
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
+    print trainedPi
+    print trainedA
+    print trainedO
     #test()
