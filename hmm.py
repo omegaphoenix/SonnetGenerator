@@ -67,7 +67,9 @@ def loadHMM(filename):
             A.append([float(x) for x in f.readline().strip().split('\t')])
         for i in range(num_states):
             O.append([float(x) for x in f.readline().strip().split('\t')])
-    return (A, O,)
+    A = np.array(A)
+    O = np.array(O)
+    return (A, O)
 
 def writeHMM(filename, A, O):
     """ Writes a HMM file. Follows the same format as the loadHMM function. """
@@ -232,6 +234,7 @@ def baum_welch(training, A, O, pi, iterations):
     num_states = pi.shape[0]
 
     for step in range(iterations):
+        print step
         A1 = np.zeros_like(A)
         O1 = np.zeros_like(O)
         pi1 = np.zeros_like(pi)
@@ -322,7 +325,8 @@ def generateStartProb(numStates):
     return pi
 
 if __name__ == '__main__':
-    test()
+    #test()
+    #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap = generateMaps(trainingWords)
 
@@ -331,12 +335,15 @@ if __name__ == '__main__':
 
     # A, O are randomly initialized based on the number of states
     # and observations.
-    A, O = randomlyInitialize(10, numObs)
+    A, O = loadHMM('test.txt')#randomlyInitialize(10, numObs)
+    writeHMM('2test.txt', A, O)
+    exit()
     pi = generateStartProb(10)
 
     # Now, going to try to run baum_welch
 
     trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
-    print trainedPi
+    #print trainedPi
     print trainedA
     print trainedO
+    writeHMM('test.txt', trainedA, trainedO)
