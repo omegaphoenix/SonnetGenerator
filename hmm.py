@@ -217,13 +217,13 @@ def baum_welch(training, A, O, pi, iterations):
             assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
-            pi1 += alpha[0,:] * beta[0,:] / za
+            pi1 += alpha[0,:] * beta[0,:]
             for i in range(0, len(obs)):
-                O1[:, obs[i]] += alpha[i,:] * beta[i,:] / za
+                O1[:, obs[i]] += alpha[i,:] * beta[i,:]
             for i in range(1, len(obs)):
                 for s1 in range(num_states):
                     for s2 in range(num_states):
-                        A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]/za
+                        A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]
         # Normalize
         pi = pi1 / np.sum(pi1)
         for s in range(num_states):
@@ -296,6 +296,7 @@ def generateStartProb(numStates):
     return pi
 
 if __name__ == '__main__':
+    test()
     trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap = generateMaps(trainingWords)
 
@@ -313,4 +314,3 @@ if __name__ == '__main__':
     print trainedPi
     print trainedA
     print trainedO
-    #test()
