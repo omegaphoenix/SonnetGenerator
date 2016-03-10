@@ -53,6 +53,13 @@ def test():
     print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A3, O3, pi3)[1]
     # print "0.004774564161046658"
 
+def test_file():
+    print "Testing Load and Write"
+    A, O = loadHMM('test.txt')
+    writeHMM('test2.txt', A, O)
+    A2, O2 = loadHMM('test2.txt')
+    print A == A2
+    print O == O2
 
 def loadHMM(filename):
     """ Loads a HMM file. Returns in format A, O
@@ -67,7 +74,7 @@ def loadHMM(filename):
             A.append([float(x) for x in f.readline().strip().split('\t')])
         for i in range(num_states):
             O.append([float(x) for x in f.readline().strip().split('\t')])
-    print num_states, num_obs
+    # print num_states, num_obs
     A = np.array(A)
     O = np.array(O)
     return (A, O)
@@ -326,25 +333,26 @@ def generateStartProb(numStates):
     return pi
 
 if __name__ == '__main__':
-    #test()
+    # test()
+    test_file()
     #trainingWords = getData("complete_shakespeare_words.txt")
-    trainingWords = getData("shakespeareWords.txt")
-    wordMap, intMap = generateMaps(trainingWords)
+    # trainingWords = getData("shakespeareWords.txt")
+    # wordMap, intMap = generateMaps(trainingWords)
 
-    trainingSequence = mapWordToInt(trainingWords, wordMap)
-    numObs = len(wordMap)
+    # trainingSequence = mapWordToInt(trainingWords, wordMap)
+    # numObs = len(wordMap)
 
-    # A, O are randomly initialized based on the number of states
-    # and observations.
-    A, O = randomlyInitialize(10, numObs)
-    # writeHMM('2test.txt', A, O)
-    # exit()
-    pi = generateStartProb(10)
+    # # A, O are randomly initialized based on the number of states
+    # # and observations.
+    # A, O = randomlyInitialize(10, numObs)
+    # # writeHMM('2test.txt', A, O)
+    # # exit()
+    # pi = generateStartProb(10)
 
-    # Now, going to try to run baum_welch
+    # # Now, going to try to run baum_welch
 
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
-    #print trainedPi
-    print trainedA
-    print trainedO
+    # trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
+    # #print trainedPi
+    # print trainedA
+    # print trainedO
     # writeHMM('test.txt', trainedA, trainedO)
