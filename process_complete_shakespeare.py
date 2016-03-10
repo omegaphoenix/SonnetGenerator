@@ -58,7 +58,7 @@ def process_scene(f,g):
             elif i in ["Exit","Exeunt","Exit.","Exuent."]:
                 break
             else:
-                g.write(i + "\n")
+                g.write(i.lower() + "\n")
         line = f.readline()
         __LINE_NO += 1
         if __LINE_NO >= 124370:
@@ -102,7 +102,10 @@ while line != "":
                 else:
                     print line
                     for word in line_list:
-                        g.write(word)
+                        if "I" in word:
+                            g.write(word)
+                        else:
+                            g.write(word.lower())
                         g.write("\n")
                 if "THE END" in line:
                     print line
