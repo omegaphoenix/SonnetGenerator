@@ -55,11 +55,10 @@ def test():
 
 
 def loadHMM(filename):
-    """ Loads a HMM file. Returns in format A, O, sequences
+    """ Loads a HMM file. Returns in format A, O
     """
     A = []  # transition matrix
     O = []  # observation matrix
-    sequences = []
 
     with open(filename, 'r') as f:
         num_states, num_obs = [int(x)
@@ -68,9 +67,29 @@ def loadHMM(filename):
             A.append([float(x) for x in f.readline().strip().split('\t')])
         for i in range(num_states):
             O.append([float(x) for x in f.readline().strip().split('\t')])
-        for i in range(5):
-            sequences.append([int(x) for x in list(f.readline().strip())])
-    return (A, O, sequences)
+    return (A, O,)
+
+def writeHMM(filename, A, O):
+    """ Writes a HMM file. Follows the same format as the loadHMM function. """
+    num_states = A.shape[0]
+    num_obs = O.shape[1]
+    with open(filename, 'w') as f:
+        f.write(str(num_states))
+        f.write('\t')
+        f.write(str(num_obs))
+        f.write('\n\r')
+        for i in range(num_states):
+            for j in range(num_states-1):
+                f.write(str(A[i,j]))
+                f.write('\t')
+            f.write(str(A[i,num_states-1]))
+            f.write('\n\r')
+        for i in range(num_states):
+            for j in range(num_obs):
+                f.write(str(O[i,j]))
+                f.write('\t')
+            f.write(str(O[i,num_obs-1]))
+            f.write('\n\r')
 
 def randomlyInitialize(num_states, num_obs):
     A = np.zeros((num_states, num_states))
