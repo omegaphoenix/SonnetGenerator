@@ -67,6 +67,7 @@ def loadHMM(filename):
             A.append([float(x) for x in f.readline().strip().split('\t')])
         for i in range(num_states):
             O.append([float(x) for x in f.readline().strip().split('\t')])
+    print num_states, num_obs
     A = np.array(A)
     O = np.array(O)
     return (A, O)
@@ -87,7 +88,7 @@ def writeHMM(filename, A, O):
             f.write(str(A[i,num_states-1]))
             f.write('\n\r')
         for i in range(num_states):
-            for j in range(num_obs):
+            for j in range(num_obs-1):
                 f.write(str(O[i,j]))
                 f.write('\t')
             f.write(str(O[i,num_obs-1]))
@@ -335,9 +336,9 @@ if __name__ == '__main__':
 
     # A, O are randomly initialized based on the number of states
     # and observations.
-    A, O = loadHMM('test.txt')#randomlyInitialize(10, numObs)
-    writeHMM('2test.txt', A, O)
-    exit()
+    A, O = randomlyInitialize(10, numObs)
+    # writeHMM('2test.txt', A, O)
+    # exit()
     pi = generateStartProb(10)
 
     # Now, going to try to run baum_welch
@@ -346,4 +347,4 @@ if __name__ == '__main__':
     #print trainedPi
     print trainedA
     print trainedO
-    writeHMM('test.txt', trainedA, trainedO)
+    # writeHMM('test.txt', trainedA, trainedO)
