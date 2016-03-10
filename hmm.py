@@ -16,35 +16,42 @@ def test():
     observations = [UP, UP, DOWN]
     
     print "Test viterbi"
-    print viterbi(len(states), [UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O)
-    print "00222200"
+    t1 = viterbi(len(states), [UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O)
+    t1_ans = "00222200"
+    print t1 == t1_ans
 
     print "Test forward 1"
-    print forward([UP, UP, DOWN], A, O, pi)[1]
-    print "0.054397999999999995"
+    t2 = forward([UP, UP, DOWN], A, O, pi)[1]
+    t2_ans = 0.054397999999999995
+    print abs(t2-t2_ans) < 1e-6
     
     print "Test forward 2"
-    print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O, pi)[1]
-    print "0.00023980534876400081"
+    t3 = forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A, O, pi)[1]
+    t3_ans = 0.00023980534876400081
+    print abs(t3-t3_ans) < 1e-6
     
     print "Test backward 1"
-    print backward([UP, UP, DOWN], A, O, pi)[1]
-    print "0.054397999999999995"
-    # These might be different due to overflow/underflow in solutions
+    t4 = backward([UP, UP, DOWN], A, O, pi)[1]
+    t4_ans = 0.054397999999999995
+    print abs(t4-t4_ans) < 1e-6
     
+    # The answers we are basing off of did not account for over/underflow
+    # Therefore, they make poor tests.
+    # I'm leaving them in the code base to check that our code runs, but 
+    # not making any comparisons.
     print "Test baum_welch 1"
     pi2, A2, O2 = baum_welch([[UP, UP, DOWN]], A, O, pi, 10)
     print forward([UP, UP, DOWN], A2, O2, pi2)[1]
-    print "0.47208638604110348"
+    # print "0.47208638604110348"
     print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A2, O2, pi2)[1]
-    print "0.0"
+    # print "0.0"
     
     print "Test baum_welch 2"
     pi3, A3, O3 = baum_welch([[UP, UP, DOWN], [UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP]], A, O, pi, 10)
     print forward([UP, UP, DOWN], A3, O3, pi3)[1]
-    print "0.23645963152993088"
+    # print "0.23645963152993088"
     print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A3, O3, pi3)[1]
-    print "0.004774564161046658"
+    # print "0.004774564161046658"
 
 
 def loadHMM(filename):
