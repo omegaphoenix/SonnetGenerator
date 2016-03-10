@@ -55,6 +55,7 @@ def test():
 
 def test_file():
     print "Testing Load and Write"
+    # A, O = loadHMM('sequenceprediction1.txt')
     A, O = loadHMM('test.txt')
     writeHMM('test2.txt', A, O)
     A2, O2 = loadHMM('test2.txt')
@@ -89,16 +90,16 @@ def writeHMM(filename, A, O):
         f.write(str(num_obs))
         f.write('\n\r')
         for i in range(num_states):
-            for j in range(num_states-1):
+            for j in range(num_states):
                 f.write(str(A[i,j]))
                 f.write('\t')
-            f.write(str(A[i,num_states-1]))
+            # f.write(str(A[i,num_states-1]))
             f.write('\n\r')
         for i in range(num_states):
-            for j in range(num_obs-1):
+            for j in range(num_obs):
                 f.write(str(O[i,j]))
                 f.write('\t')
-            f.write(str(O[i,num_obs-1]))
+            # f.write(str(O[i,num_obs-1]))
             f.write('\n\r')
 
 def randomlyInitialize(num_states, num_obs):
@@ -334,25 +335,25 @@ def generateStartProb(numStates):
 
 if __name__ == '__main__':
     # test()
-    test_file()
+    # test_file()
     #trainingWords = getData("complete_shakespeare_words.txt")
-    # trainingWords = getData("shakespeareWords.txt")
-    # wordMap, intMap = generateMaps(trainingWords)
+    trainingWords = getData("shakespeareWords.txt")
+    wordMap, intMap = generateMaps(trainingWords)
 
-    # trainingSequence = mapWordToInt(trainingWords, wordMap)
-    # numObs = len(wordMap)
+    trainingSequence = mapWordToInt(trainingWords, wordMap)
+    numObs = len(wordMap)
 
-    # # A, O are randomly initialized based on the number of states
-    # # and observations.
-    # A, O = randomlyInitialize(10, numObs)
-    # # writeHMM('2test.txt', A, O)
-    # # exit()
-    # pi = generateStartProb(10)
+    # A, O are randomly initialized based on the number of states
+    # and observations.
+    A, O = randomlyInitialize(10, numObs)
+    # writeHMM('2test.txt', A, O)
+    # exit()
+    pi = generateStartProb(10)
 
-    # # Now, going to try to run baum_welch
+    # Now, going to try to run baum_welch
 
-    # trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
-    # #print trainedPi
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
+    # print trainedPi
     # print trainedA
     # print trainedO
-    # writeHMM('test.txt', trainedA, trainedO)
+    writeHMM('test.txt', trainedA, trainedO)
