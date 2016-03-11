@@ -2,6 +2,8 @@
 import sys
 import numpy as np
 import random
+# for frobenius norm
+from numpy import linalg as LA
 from sklearn.preprocessing import normalize
 from itertools import chain
 
@@ -252,9 +254,12 @@ def backward(obs, A, O, pi):
 def baum_welch(training, A, O, pi, iterations):
     A, O, pi = np.copy(A), np.copy(O), np.copy(pi)
     num_states = pi.shape[0]
+    step = 0
+    norm_diff = 1
 
-    for step in range(iterations):
+    while norm_diff > 1e-4 and step < iterations:
         print step
+        step += 1
         A1 = np.zeros_like(A)
         O1 = np.zeros_like(O)
         pi1 = np.zeros_like(pi)
@@ -277,8 +282,14 @@ def baum_welch(training, A, O, pi, iterations):
         # Normalize
         pi = pi1 / np.sum(pi1)
         for s in range(num_states):
-            A[s, :] = A1[s,:] / np.sum(A1[s,:])
-            O[s, :] = O1[s, :] / np.sum(O1[s, :])
+            A1[s, :] = A1[s,:] / np.sum(A1[s,:])
+            O1[s, :] = O1[s, :] / np.sum(O1[s, :])
+        norm_diff = LA.norm(A1-A)
+        norm_diff2 = LA.norm(O1-O)
+        print norm_diff
+        print norm_diff2
+        A = A1
+        O = O1
     return pi, A, O
 
 # Generating two dictionaries (we probably only need one but oh well).
@@ -347,8 +358,7 @@ def generateStartProb(numStates):
 
 if __name__ == '__main__':
     # test()
-    test_file()
-    exit()
+    #test_file()
     #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap = generateMaps(trainingWords)
@@ -365,7 +375,7 @@ if __name__ == '__main__':
 
     # Now, going to try to run baum_welch
 
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 10)
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 100)
     # print trainedPi
     # print trainedA
     # print trainedO
