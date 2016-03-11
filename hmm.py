@@ -11,7 +11,7 @@ import heapq
 def main():
     #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
-    wordMap, intMap = generateMaps(trainingWords)
+    wordMap, intMap, wordCount = generateMaps(trainingWords)
 
     trainingSequence = mapWordToInt(trainingWords, wordMap)
     numObs = len(wordMap)
@@ -26,15 +26,11 @@ def main():
     # Now, going to try to run baum_welch
 
     trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 500)
-    # print trainedPi
-    # print trainedA
-    # print trainedO
 
-    # TODO save Pi somewhere so that we can continue where we left off
-    # instead of restarting from scratch.
+    # Save matrices to file
     writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
-    good_words = analyzeHiddenStates(O, wordMap, intMap)
+    good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
     print good_words
 
 
@@ -322,6 +318,7 @@ def baum_welch(training, A, O, pi, iterations):
 def generateMaps(sonnets):
     wordMap = {}
     intMap = {}
+    wordCount = {}
     counter = 0
     setOfWords = []
 
@@ -331,10 +328,13 @@ def generateMaps(sonnets):
             if word not in setOfWords:
                 wordMap[word] = counter
                 intMap[counter] = word
+                wordCount[word] = 1
                 counter += 1
                 setOfWords.append(word)
+            else:
+                wordCount[word] += 1
 
-    return (wordMap, intMap)
+    return (wordMap, intMap, wordCount)
 
 # Mapping the string words into integers. This is how we will tokenize things.
 def mapWordToInt(sonnets, wordMap):
@@ -382,9 +382,11 @@ def generateStartProb(numStates):
     pi = np.array([initProb for i in range(numStates)])
     return pi
 
-def analyzeHiddenStates(O, wordMap, intMap):
+def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     """ This function finds the top ten words
     in the hidden states """
+    for i in intMap:
+        O[:, i] = O[:,i] / wordCount[intMap[i]]
     Ot = O.transpose()
     best = []
     cur_best = []
@@ -402,6 +404,7 @@ def analyzeHiddenStates(O, wordMap, intMap):
 
 
 if __name__ == '__main__':
+    np.random.seed(13)
     # test()
     #test_file()
     main()
