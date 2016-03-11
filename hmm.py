@@ -1,4 +1,5 @@
 # Based on solution to HW4 provided by Fabian Boemer and Kevin Tang
+import sys
 import numpy as np
 import random
 from sklearn.preprocessing import normalize
@@ -57,17 +58,19 @@ def test():
 def test_file():
     print "Testing Load and Write"
     # A, O = loadHMM('sequenceprediction1.txt')
-    A, O = loadHMM('test.txt')
-    writeHMM('test2.txt', A, O)
-    A2, O2 = loadHMM('test2.txt')
+    A, O, pi = loadHMM('test.txt')
+    writeHMM('test2.txt', A, O, pi)
+    A2, O2, pi2 = loadHMM('test2.txt')
     print A == A2
     print O == O2
+    print pi == pi2
 
 def loadHMM(filename):
     """ Loads a HMM file. Returns in format A, O
     """
     A = []  # transition matrix
     O = []  # observation matrix
+    pi = [] # start probabilities
 
     with open(filename, 'r') as f:
         num_states, num_obs = [int(x)
@@ -76,12 +79,15 @@ def loadHMM(filename):
             A.append([float(x) for x in f.readline().strip().split('\t')])
         for i in range(num_states):
             O.append([float(x) for x in f.readline().strip().split('\t')])
+        for x in f.readline().strip().split('\t'):
+            pi.append(x)
     # print num_states, num_obs
     A = np.array(A)
     O = np.array(O)
-    return (A, O)
+    pi = np.array(pi)
+    return (A, O, pi)
 
-def writeHMM(filename, A, O):
+def writeHMM(filename, A, O, pi):
     """ Writes a HMM file. Follows the same format as the loadHMM function. """
     num_states = A.shape[0]
     num_obs = O.shape[1]
@@ -102,6 +108,11 @@ def writeHMM(filename, A, O):
                 f.write('\t')
             # f.write(str(O[i,num_obs-1]))
             f.write('\n\r')
+        for i in range(num_states):
+            f.write(str(pi[i]))
+            f.write('\t')
+        f.write('\n\r')
+
 
 def randomlyInitialize(num_states, num_obs):
     A = np.zeros((num_states, num_states))
@@ -263,6 +274,7 @@ def baum_welch(training, A, O, pi, iterations):
                 for s1 in range(num_states):
                     for s2 in range(num_states):
                         A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]
+
         # Normalize
         pi = pi1 / np.sum(pi1)
         for s in range(num_states):
@@ -355,7 +367,8 @@ def analyzeHiddenStates(O, wordMap, intMap):
 
 if __name__ == '__main__':
     # test()
-    # test_file()
+    test_file()
+    exit()
     #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap = generateMaps(trainingWords)
@@ -378,9 +391,11 @@ if __name__ == '__main__':
     # print trainedPi
     # print trainedA
     # print trainedO
+
     # TODO save Pi somewhere so that we can continue where we left off
     # instead of restarting from scratch.
     writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO)
 
     good_words = analyzeHiddenStates(O, wordMap, intMap)
     print good_words
+
