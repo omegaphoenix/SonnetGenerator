@@ -19,7 +19,7 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    H_STATES = 5
+    H_STATES = 7
     A, O = randomlyInitialize(H_STATES, numObs)
     pi = generateStartProb(H_STATES)
 
