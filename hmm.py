@@ -88,12 +88,22 @@ def test2():
     O = np.array([[0.8, 0.1, 0.1],
                       [0.0, 0.0, 1]])
     observ,states = simulate(1000, A, O, pi)
-    pi = np.array([0.5, 0.5])
-    A = np.array([[0.5, 0.5],
+    pi1 = np.array([0.5, 0.5])
+    A1 = np.array([[0.5, 0.5],
                   [0.5, 0.5]])
-    O = np.array([[0.3, 0.3, 0.4],
+    O1 = np.array([[0.3, 0.3, 0.4],
                   [0.2, 0.5, 0.3]])
-    print baum_welch([observ], A, O, pi, 50)
+    print observ
+    pi2,A2,O2  = baum_welch([observ], A1, O1, pi1, 100)
+    print 'Actual probabilities\n',pi
+    print 'Estimated initial probabilities\n',pi2
+
+    print 'Actual state transition probabililities\n',A
+    print 'Estimated state transition probabililities\n',A2
+
+    print 'Actual observation probabililities\n',O
+    print 'Estimated observation probabililities\n',O2
+
 
 def test_file():
     print "Testing Load and Write"
@@ -241,10 +251,10 @@ def forward(obs, A, O, pi):
 
     # We iterate through all indices in the data and use dynamic programming to update
     for length in range(1, len_):   # length + 1 to avoid initial condition
-        for state in range(num_states):
-            for prev_state in range(num_states):
-                alpha[length, state] += alpha[length-1, prev_state] * A[prev_state, state] * O[state, obs[length]]
-    
+        #for state in range(num_states):
+            #for prev_state in range(num_states):
+                #alpha[length, state] += alpha[length-1, prev_state] * A[prev_state, state] * O[state, obs[length]]
+        alpha[length, :] = np.dot(alpha[length-1, :], A) * O[:,obs[length]]
 
         # Normalize to prevent underflow 
         C_normalize = sum(alpha[length, :])
@@ -274,10 +284,11 @@ def backward(obs, A, O, pi):
     
     # Calculate rest of beta
     for i in range(len_-2, -1, -1):
-        for state in range(num_states):
-            for next_state in range(num_states):
-                beta[i, state] += beta[i+1,next_state] * A[state, next_state] * O[next_state, obs[i+1]]
-        
+        #for state in range(num_states):
+            #for next_state in range(num_states):
+                #beta[i, state] += beta[i+1,next_state] * A[state, next_state] * O[next_state, obs[i+1]]
+        beta[i, :] = np.dot(A, (O[:,obs[i+1]]*beta[i+1,:]))
+
         # Normalize to prevent underflow 
         C_normalize = sum(beta[i, :])
         if C_normalize != 0:
@@ -296,7 +307,7 @@ def baum_welch(training, A, O, pi, iterations):
     step = 0
     norm_diff = 1
 
-    while norm_diff > 1e-4 and step < iterations:
+    while norm_diff > 1e-3 and step < iterations:
         print step
         step += 1
         A1 = np.zeros_like(A)
@@ -307,6 +318,7 @@ def baum_welch(training, A, O, pi, iterations):
             # E-step - Compute forward-backward
             alpha, za = forward(obs, A, O, pi)
             beta, zb = backward(obs, A, O, pi)
+            print za
             assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
@@ -432,7 +444,8 @@ def simulate(nSteps, A, O, pi):
 
 
 if __name__ == '__main__':
-    np.random.seed(13)
+    #np.random.seed(13)
+    test()
     test2()
     #test_file()
     #main()
