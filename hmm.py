@@ -9,7 +9,34 @@ from itertools import chain
 import heapq
 
 def main():
-    pass
+    #trainingWords = getData("complete_shakespeare_words.txt")
+    trainingWords = getData("shakespeareWords.txt")
+    wordMap, intMap = generateMaps(trainingWords)
+
+    trainingSequence = mapWordToInt(trainingWords, wordMap)
+    numObs = len(wordMap)
+
+    # A, O are randomly initialized based on the number of states
+    # and observations.
+
+    H_STATES = 5
+    A, O = randomlyInitialize(H_STATES, numObs)
+    pi = generateStartProb(H_STATES)
+
+    # Now, going to try to run baum_welch
+
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 500)
+    # print trainedPi
+    # print trainedA
+    # print trainedO
+
+    # TODO save Pi somewhere so that we can continue where we left off
+    # instead of restarting from scratch.
+    writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
+
+    good_words = analyzeHiddenStates(O, wordMap, intMap)
+    print good_words
+
 
 def test():
     # Tests from http://people.eng.unimelb.edu.au/tcohn/comp90042/HMM.py
@@ -377,33 +404,4 @@ def analyzeHiddenStates(O, wordMap, intMap):
 if __name__ == '__main__':
     # test()
     #test_file()
-    #trainingWords = getData("complete_shakespeare_words.txt")
-    trainingWords = getData("shakespeareWords.txt")
-    wordMap, intMap = generateMaps(trainingWords)
-
-    trainingSequence = mapWordToInt(trainingWords, wordMap)
-    numObs = len(wordMap)
-
-    # A, O are randomly initialized based on the number of states
-    # and observations.
-
-    H_STATES = 5
-    A, O = randomlyInitialize(H_STATES, numObs)
-    # writeHMM('2test.txt', A, O)
-    # exit()
-    pi = generateStartProb(H_STATES)
-
-    # Now, going to try to run baum_welch
-
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 500)
-    # print trainedPi
-    # print trainedA
-    # print trainedO
-
-    # TODO save Pi somewhere so that we can continue where we left off
-    # instead of restarting from scratch.
-    writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
-
-    good_words = analyzeHiddenStates(O, wordMap, intMap)
-    print good_words
-
+    main()
