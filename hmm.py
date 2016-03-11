@@ -284,10 +284,8 @@ def baum_welch(training, A, O, pi, iterations):
         for s in range(num_states):
             A1[s, :] = A1[s,:] / np.sum(A1[s,:])
             O1[s, :] = O1[s, :] / np.sum(O1[s, :])
-        norm_diff = LA.norm(A1-A)
-        norm_diff2 = LA.norm(O1-O)
+        norm_diff = LA.norm(A1-A) + LA.norm(O1-O)
         print norm_diff
-        print norm_diff2
         A = A1
         O = O1
     return pi, A, O
