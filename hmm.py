@@ -19,7 +19,7 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    H_STATES = 7
+    H_STATES = 8
     A, O = randomlyInitialize(H_STATES, numObs)
     pi = generateStartProb(H_STATES)
 
@@ -79,6 +79,21 @@ def test():
     # print "0.23645963152993088"
     print forward([UP, UP, DOWN, UNCHANGED, UNCHANGED, DOWN, UP, UP], A3, O3, pi3)[1]
     # print "0.004774564161046658"
+
+def test2():
+    print "Test simulation"
+    pi = np.array([0.5, 0.5])
+    A = np.array([[0.85, 0.15],
+                      [0.12, 0.88]])
+    O = np.array([[0.8, 0.1, 0.1],
+                      [0.0, 0.0, 1]])
+    observ,states = simulate(1000, A, O, pi)
+    pi = np.array([0.5, 0.5])
+    A = np.array([[0.5, 0.5],
+                  [0.5, 0.5]])
+    O = np.array([[0.3, 0.3, 0.4],
+                  [0.2, 0.5, 0.3]])
+    print baum_welch([observ], A, O, pi, 50)
 
 def test_file():
     print "Testing Load and Write"
@@ -292,7 +307,7 @@ def baum_welch(training, A, O, pi, iterations):
             # E-step - Compute forward-backward
             alpha, za = forward(obs, A, O, pi)
             beta, zb = backward(obs, A, O, pi)
-            # assert abs(za - zb) <1e-6, "marginals not equal"
+            assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
             pi1 += alpha[0,:] * beta[0,:]
@@ -402,9 +417,22 @@ def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     return best
 
 
+def simulate(nSteps, A, O, pi):
+    # For testing
+    def drawFrom(probs):
+        return np.where(np.random.multinomial(1,probs) == 1)[0][0]
+    observations = np.zeros(nSteps)
+    states = np.zeros(nSteps)
+    states[0] = drawFrom(pi)
+    observations[0] = int(drawFrom(O[states[0],:]))
+    for t in range(1, nSteps):
+        states[0] = drawFrom(A[states[0],:])
+        observations[t] = int(drawFrom(O[states[t],:]))
+    return observations, states
+
 
 if __name__ == '__main__':
     np.random.seed(13)
-    # test()
+    test2()
     #test_file()
-    main()
+    #main()
