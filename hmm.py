@@ -402,7 +402,7 @@ if __name__ == '__main__':
 
     # TODO save Pi somewhere so that we can continue where we left off
     # instead of restarting from scratch.
-    writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO)
+    writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
     good_words = analyzeHiddenStates(O, wordMap, intMap)
     print good_words
