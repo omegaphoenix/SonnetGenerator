@@ -19,7 +19,7 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    H_STATES = 8
+    H_STATES = 5
     A, O = randomlyInitialize(H_STATES, numObs)
     pi = generateStartProb(H_STATES)
 
@@ -93,7 +93,6 @@ def test2():
                   [0.5, 0.5]])
     O1 = np.array([[0.3, 0.3, 0.4],
                   [0.2, 0.5, 0.3]])
-    print observ
     pi2,A2,O2  = baum_welch([observ], A1, O1, pi1, 100)
     print 'Actual probabilities\n',pi
     print 'Estimated initial probabilities\n',pi2
@@ -318,22 +317,17 @@ def baum_welch(training, A, O, pi, iterations):
             # E-step - Compute forward-backward
             alpha, za = forward(obs, A, O, pi)
             beta, zb = backward(obs, A, O, pi)
-            print za
-            assert abs(za - zb) <1e-6, "marginals not equal"
+            #print za
+            #assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
-            """pi1 += alpha[0,:] * beta[0,:]
+            #pi1 += alpha[0,:] * beta[0,:]
             for i in range(0, len(obs)):
                 O1[:, obs[i]] += alpha[i,:] * beta[i,:]
-            for i in range(1, len(obs)):
+            """for i in range(1, len(obs)):
                 for s1 in range(num_states):
                     for s2 in range(num_states):
                         A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]"""
-            """print A
-            print O
-            print alpha.T
-            print beta.T
-            exit()"""
             xi = np.zeros((num_states,num_states,len(obs)-1));
             for t in range(len(obs)-1):
                 denom = np.dot(np.dot(alpha[t, :], A) * O[:,obs[t+1]].T,beta[t+1,:].T)
@@ -349,7 +343,7 @@ def baum_welch(training, A, O, pi, iterations):
 
             newpi = gamma[:,0]
             newA = np.sum(xi,2) / np.sum(gamma[:,:-1],axis=1).reshape((-1,1))
-            newO = np.copy(O)
+            """newO = np.copy(O)
             numLevels = O.shape[1]
             sumgamma = np.sum(gamma,axis=1)
             gamma = np.array(gamma)
@@ -358,21 +352,21 @@ def baum_welch(training, A, O, pi, iterations):
                 try:
                     newO[:,lev] = np.sum(gamma[:,mask],axis=1) / sumgamma
                 except ValueError:
-                    newO[:,lev] = np.sum(gamma[:,mask],axis=0) /sumgamma
+                    pass"""
 
 
         # Normalize
         #pi = pi1 / np.sum(pi1)
         pi[:] = newpi
-        #for s in range(num_states):
+        for s in range(num_states):
             #A1[s, :] = A1[s,:] / np.sum(A1[s,:])
-            #O1[s, :] = O1[s, :] / np.sum(O1[s, :])
+            O1[s, :] = O1[s, :] / np.sum(O1[s, :])
         #print A1
-        print newA
+        #print newA
         norm_diff = LA.norm(newA-A) + LA.norm(O1-O)
         print norm_diff
         A[:] = newA
-        O[:] = newO
+        O[:] = O1
     return pi, A, O
 
 # Generating two dictionaries (we probably only need one but oh well).
@@ -482,4 +476,4 @@ if __name__ == '__main__':
     #test()
     test2()
     #test_file()
-    #main()
+    main()
