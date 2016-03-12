@@ -476,4 +476,5 @@ if __name__ == '__main__':
     #test2()
     #test_file()
     np.random.seed(13)
+    random.seed(13)
     main()
