@@ -321,7 +321,7 @@ def baum_welch(training, A, O, pi, iterations):
             #assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
-            #pi1 += alpha[0,:] * beta[0,:]
+            pi1 += alpha[0,:] * beta[0,:]
             for i in range(0, len(obs)):
                 O1[:, obs[i]] += alpha[i,:] * beta[i,:]
             """for i in range(1, len(obs)):
@@ -341,8 +341,8 @@ def baum_welch(training, A, O, pi, iterations):
             prod =  (alpha[len(obs)-1,:] * beta[len(obs)-1,:]).reshape((-1,1))
             gamma = np.hstack((gamma,  prod / np.sum(prod))) #append one more to gamma!!!
 
-            newpi = gamma[:,0]
-            newA = np.sum(xi,2) / np.sum(gamma[:,:-1],axis=1).reshape((-1,1))
+            #newpi += gamma[:,0]
+            A1 += np.sum(xi,2) / np.sum(gamma[:,:-1],axis=1).reshape((-1,1))
             """newO = np.copy(O)
             numLevels = O.shape[1]
             sumgamma = np.sum(gamma,axis=1)
@@ -356,16 +356,15 @@ def baum_welch(training, A, O, pi, iterations):
 
 
         # Normalize
-        #pi = pi1 / np.sum(pi1)
-        pi[:] = newpi
+        pi = pi1 / np.sum(pi1)
         for s in range(num_states):
-            #A1[s, :] = A1[s,:] / np.sum(A1[s,:])
+            A1[s, :] = A1[s,:] / np.sum(A1[s,:])
             O1[s, :] = O1[s, :] / np.sum(O1[s, :])
         #print A1
         #print newA
-        norm_diff = LA.norm(newA-A) + LA.norm(O1-O)
+        norm_diff = LA.norm(A1-A) + LA.norm(O1-O)
         print norm_diff
-        A[:] = newA
+        A[:] = A1
         O[:] = O1
     return pi, A, O
 
@@ -428,7 +427,7 @@ def getData(inFile):
         else:
             totalData.append(sonnet)
             sonnet = []
-
+    print totalData
     return totalData
 
 # This will assume uniform probability initial state.
@@ -441,7 +440,7 @@ def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     """ This function finds the top ten words
     in the hidden states """
     for i in intMap:
-        O[:, i] = O[:,i] / wordCount[intMap[i]]
+        O[:, i] = O[:,i]/sum(O[:,i])
     Ot = O.transpose()
     best = []
     cur_best = []
