@@ -307,7 +307,7 @@ def baum_welch(training, A, O, pi, iterations):
     step = 0
     norm_diff = 1
 
-    while norm_diff > 1e-3 and step < iterations:
+    while norm_diff > 1e-4 and step < iterations:
         print step
         step += 1
         A1 = np.zeros_like(A)
@@ -322,23 +322,57 @@ def baum_welch(training, A, O, pi, iterations):
             assert abs(za - zb) <1e-6, "marginals not equal"
 
             # M-step - maximum likelihood estimate
-            pi1 += alpha[0,:] * beta[0,:]
+            """pi1 += alpha[0,:] * beta[0,:]
             for i in range(0, len(obs)):
                 O1[:, obs[i]] += alpha[i,:] * beta[i,:]
             for i in range(1, len(obs)):
                 for s1 in range(num_states):
                     for s2 in range(num_states):
-                        A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]
+                        A1[s1,s2] += alpha[i-1,s1]*A[s1,s2]*O[s2,obs[i]]*beta[i,s2]"""
+            """print A
+            print O
+            print alpha.T
+            print beta.T
+            exit()"""
+            xi = np.zeros((num_states,num_states,len(obs)-1));
+            for t in range(len(obs)-1):
+                denom = np.dot(np.dot(alpha[t, :], A) * O[:,obs[t+1]].T,beta[t+1,:].T)
+                for i in range(num_states):
+                    numer = alpha[t,i] * A[i,:] * O[:,obs[t+1]].T * beta[t+1,:]
+                    xi[i,:,t] = numer / denom
+  
+            # gamma_t(i) = P(q_t = S_i | O, hmm)
+            gamma = np.squeeze(np.sum(xi,axis=1))
+            # Need final gamma element for new B
+            prod =  (alpha[len(obs)-1,:] * beta[len(obs)-1,:]).reshape((-1,1))
+            gamma = np.hstack((gamma,  prod / np.sum(prod))) #append one more to gamma!!!
+
+            newpi = gamma[:,0]
+            newA = np.sum(xi,2) / np.sum(gamma[:,:-1],axis=1).reshape((-1,1))
+            newO = np.copy(O)
+            numLevels = O.shape[1]
+            sumgamma = np.sum(gamma,axis=1)
+            gamma = np.array(gamma)
+            for lev in range(numLevels):
+                mask = obs == lev
+                try:
+                    newO[:,lev] = np.sum(gamma[:,mask],axis=1) / sumgamma
+                except ValueError:
+                    newO[:,lev] = np.sum(gamma[:,mask],axis=0) /sumgamma
+
 
         # Normalize
-        pi = pi1 / np.sum(pi1)
-        for s in range(num_states):
-            A1[s, :] = A1[s,:] / np.sum(A1[s,:])
-            O1[s, :] = O1[s, :] / np.sum(O1[s, :])
-        norm_diff = LA.norm(A1-A) + LA.norm(O1-O)
+        #pi = pi1 / np.sum(pi1)
+        pi[:] = newpi
+        #for s in range(num_states):
+            #A1[s, :] = A1[s,:] / np.sum(A1[s,:])
+            #O1[s, :] = O1[s, :] / np.sum(O1[s, :])
+        #print A1
+        print newA
+        norm_diff = LA.norm(newA-A) + LA.norm(O1-O)
         print norm_diff
-        A = A1
-        O = O1
+        A[:] = newA
+        O[:] = newO
     return pi, A, O
 
 # Generating two dictionaries (we probably only need one but oh well).
@@ -430,6 +464,7 @@ def analyzeHiddenStates(O, wordMap, intMap, wordCount):
 
 
 def simulate(nSteps, A, O, pi):
+    np.random.seed(13)
     # For testing
     def drawFrom(probs):
         return np.where(np.random.multinomial(1,probs) == 1)[0][0]
@@ -438,14 +473,13 @@ def simulate(nSteps, A, O, pi):
     states[0] = drawFrom(pi)
     observations[0] = int(drawFrom(O[states[0],:]))
     for t in range(1, nSteps):
-        states[0] = drawFrom(A[states[0],:])
+        states[t] = drawFrom(A[states[t-1],:])
         observations[t] = int(drawFrom(O[states[t],:]))
     return observations, states
 
 
 if __name__ == '__main__':
-    #np.random.seed(13)
-    test()
+    #test()
     test2()
     #test_file()
     #main()
