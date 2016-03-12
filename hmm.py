@@ -25,7 +25,7 @@ def main():
 
     # Now, going to try to run baum_welch
 
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 500)
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
 
     # Save matrices to file
     writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
@@ -447,7 +447,7 @@ def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     cur_best = []
     for i in O:
         cur_best_pos = []
-        cur_best_probs = heapq.nlargest(10, i)
+        cur_best_probs = heapq.nlargest(20, i)
         for j in cur_best_probs:
             for row, prob in enumerate(i):
                 if prob == j:
@@ -458,7 +458,6 @@ def analyzeHiddenStates(O, wordMap, intMap, wordCount):
 
 
 def simulate(nSteps, A, O, pi):
-    np.random.seed(13)
     # For testing
     def drawFrom(probs):
         return np.where(np.random.multinomial(1,probs) == 1)[0][0]
@@ -474,6 +473,7 @@ def simulate(nSteps, A, O, pi):
 
 if __name__ == '__main__':
     #test()
-    test2()
+    #test2()
     #test_file()
+    np.random.seed(13)
     main()
