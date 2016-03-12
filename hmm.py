@@ -6,8 +6,9 @@ import random
 from numpy import linalg as LA
 from sklearn.preprocessing import normalize
 from itertools import chain
+from nltk.corpus import cmudict
 import heapq
-
+trainingWords = []
 def main():
     #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
@@ -33,6 +34,86 @@ def main():
     good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
     print good_words
 
+def generate():
+    trainingWords = getData("shakespeareWords.txt")
+    wordMap, intMap, wordCount = generateMaps(trainingWords)
+    for H_STATES in range(5,9):
+        np.random.seed(13)
+        random.seed(13)
+        A, O, pi = loadHMM('test{}.txt'.format(H_STATES))
+        poem = ""
+        poem += generatePoem(A, O, pi, wordMap, intMap)
+        print poem
+    
+def generateWord(A, O, pi, wordMap, intMap, prevState):
+    word = ""
+    next_state = 0
+    prob = random.random()
+    # Get first word
+    if prevState == -1:
+        for i in xrange(pi.shape[0]):
+            if prob > pi[i]:
+                prob -= pi[i]
+            else:
+                next_state = i
+                break
+        prob = random.random()
+        for i in xrange(O.shape[1]):
+            if prob > O[next_state, i]:
+                prob -= O[next_state, i]
+            else:
+                word = intMap[i]
+                break
+    else:
+        for i in xrange(A.shape[0]):
+            if prob > A[prevState, i]:
+                prob -= A[prevState, i]
+            else:
+                next_state = i
+                break
+        prob = random.random()
+        for i in xrange(O.shape[1]):
+            if prob > O[next_state, i]:
+                prob -= O[next_state, i]
+            else:
+                word = intMap[i]
+                break
+    return word, next_state
+
+def generateLine(A, O, pi, wordMap, intMap, prevState):
+    line = ""
+    state = prevState
+    while countSyllabels(line) != 10:
+        if countSyllabels(line) < 10:
+            word, state = generateWord(A, O, pi, wordMap, intMap, state)
+            line += word
+            line += " "
+        else:
+            line = ""
+            state = prevState
+    return line + "\n", state
+
+def generatePoem(A, O, pi, wordMap, intMap):
+    poem = ""
+    state = -1
+    for i in xrange(14):
+        line, state = generateLine(A, O, pi, wordMap, intMap, state)
+        poem += line
+        print line
+    return poem
+
+def countSyllabels(line):
+    syl = 0
+    if line == "":
+        return syl
+    d = cmudict.dict()
+    for word in line.split(" "):
+        try:
+            syla = [len(list(y for y in x if y[-1].isdigit())) for x in d[word.lower()]]
+            syl += syla[0]
+        except KeyError:
+            pass
+    return syl
 
 def test():
     # Tests from http://people.eng.unimelb.edu.au/tcohn/comp90042/HMM.py
@@ -303,10 +384,12 @@ def backward(obs, A, O, pi):
 def baum_welch(training, A, O, pi, iterations):
     A, O, pi = np.copy(A), np.copy(O), np.copy(pi)
     num_states = pi.shape[0]
+    num_words = O.shape[1]
+    print O.shape
     step = 0
     norm_diff = 1
 
-    while norm_diff > 1e-4 and step < iterations:
+    while norm_diff > 1e-8*num_words*num_states and step < iterations:
         print step
         step += 1
         A1 = np.zeros_like(A)
@@ -360,6 +443,10 @@ def baum_welch(training, A, O, pi, iterations):
         for s in range(num_states):
             A1[s, :] = A1[s,:] / np.sum(A1[s,:])
             O1[s, :] = O1[s, :] / np.sum(O1[s, :])
+        # Take advantage of spareness by rounding to zero
+        if step % 25 == 0:
+            A1 = A1 * (A1 > 1e-10)
+            pi = pi * (pi > 1e-10)
         #print A1
         #print newA
         norm_diff = LA.norm(A1-A) + LA.norm(O1-O)
@@ -427,7 +514,6 @@ def getData(inFile):
         else:
             totalData.append(sonnet)
             sonnet = []
-    print totalData
     return totalData
 
 # This will assume uniform probability initial state.
@@ -439,8 +525,8 @@ def generateStartProb(numStates):
 def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     """ This function finds the top ten words
     in the hidden states """
-    for i in intMap:
-        O[:, i] = O[:,i]/sum(O[:,i])
+    #for i in intMap:
+        #O[:, i] = O[:,i]/sum(O[:,i])
     Ot = O.transpose()
     best = []
     cur_best = []
@@ -476,4 +562,5 @@ if __name__ == '__main__':
     #test_file()
     np.random.seed(13)
     random.seed(13)
-    main()
+    #main()
+    generate()
