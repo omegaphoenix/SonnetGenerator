@@ -9,44 +9,37 @@ from itertools import chain
 from nltk.corpus import cmudict
 import heapq
 trainingWords = []
-def main():
+def main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence):
     #trainingWords = getData("complete_shakespeare_words.txt")
-    trainingWords = getData("shakespeareWords.txt")
-    wordMap, intMap, wordCount = generateMaps(trainingWords)
-
-    trainingSequence = mapWordToInt(trainingWords, wordMap)
+    #trainingWords = getData("shakespeareWords.txt")
     numObs = len(wordMap)
 
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    for H_STATES in range(9, 15):
-        A, O = randomlyInitialize(H_STATES, numObs)
-        pi = generateStartProb(H_STATES)
+    A, O = randomlyInitialize(H_STATES, numObs)
+    pi = generateStartProb(H_STATES)
 
-        # Now, going to try to run baum_welch
-        trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
+    # Now, going to try to run baum_welch
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 1000)
 
-        # Save matrices to file
-        writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
+    # Save matrices to file
+    writeHMM('test_complete_bigrams{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
-        good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
-        print good_words
+    good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
+    print good_words
 
-def generate():
+def generate(H_STATES, trainingWords, wordMap, intMap, wordCount):
     #trainingWords = getData("complete_shakespeare_words.txt")
-    trainingWords = getData("shakespeareWords.txt")
-    wordMap, intMap, wordCount = generateMaps(trainingWords)
-    for H_STATES in range(5,15):
-        np.random.seed(13)
-        random.seed(13)
-        A, O, pi = loadHMM('test{}.txt'.format(H_STATES))
-        poem = ""
-        poem += generatePoem(A, O, pi, wordMap, intMap)
-        output_file = 'poem{}.txt'.format(H_STATES)
-        with open(output_file, 'w') as f:
-            f.write(poem)
-        print poem
+    np.random.seed(13)
+    random.seed(13)
+    A, O, pi = loadHMM('test_complete_bigrams{}.txt'.format(H_STATES))
+    poem = ""
+    poem += generatePoem(A, O, pi, wordMap, intMap)
+    output_file = 'complete_bigram_poem{}.txt'.format(H_STATES)
+    with open(output_file, 'w') as f:
+        f.write(poem)
+    print poem
     
 def generateWord(A, O, pi, wordMap, intMap, prevState):
     word = ""
@@ -726,5 +719,10 @@ if __name__ == '__main__':
     #test_file()
     np.random.seed(13)
     random.seed(13)
-    #main()
-    generate()
+    trainingWords = getData("complete_bigrams.txt")
+    wordMap, intMap, wordCount = generateMaps(trainingWords)
+
+    trainingSequence = mapWordToInt(trainingWords, wordMap)
+    for H_STATES in range(5,10):
+        main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence)
+        generate(H_STATES, trainingWords, wordMap, intMap, wordCount)
