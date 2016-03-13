@@ -19,6 +19,24 @@ def parseStringToWords(trainingArray):
 
     return aggregatedWords
 
+def countBigrams(words):
+    bigram = {}
+    prevWord = "\n"
+    for word in words:
+        if word != "\n":
+            if prevWord != "\n":
+                twoWords = prevWord + " " + word
+                if twoWords in bigram:
+                    bigram[twoWords] += 1
+                else:
+                    bigram[twoWords] = 1
+            prevWord = word
+    freq_bigram = []
+    for word in bigram:
+        if bigram[word] > 2:
+            freq_bigram.append(word.split(" "))
+    return freq_bigram
+
 # Taking an array of words, and outputting it into a designated text file.
 def writeToFile(outFile, words):
     outputFile = open(outFile, 'w')
@@ -28,6 +46,28 @@ def writeToFile(outFile, words):
             outputFile.write(word + "\n")
         else:
             outputFile.write(word)
+    outputFile.close()
+
+# Taking an array of words, and outputting it into a designated text file.
+def writeToFile2(outFile, words, bigram):
+    outputFile = open(outFile, 'w')
+    prev_word = ""
+    for word in words:
+        if prev_word != "\n":
+            if [prev_word, word] in bigram:
+                outputFile.write(prev_word + " " + word + "\n")
+                prev_word = "" 
+            else:
+                if prev_word != "":
+                    outputFile.write(prev_word + "\n")
+                prev_word = word
+        else:
+            outputFile.write(prev_word)
+            prev_word = word
+    if prev_word != "\n":
+        outputFile.write(prev_word + "\n")
+    else:
+        outputFile.write(prev_word)
     outputFile.close()
 
 # Reading in a file, and parsing it so that each sonnet occupies an
@@ -79,7 +119,8 @@ def readInFile(inFile):
 # Running the script
 sonnets = readInFile('shakespeare.txt')
 words = parseStringToWords(sonnets)
-writeToFile('shakespeareWords.txt', words)
+bigrams = countBigrams(words)
+writeToFile2('shakespeareWordsBigrams.txt', words, bigrams)
 
 spenserSonnets = readInFile('spenser.txt')
 spenserWords = parseStringToWords(spenserSonnets)

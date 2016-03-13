@@ -73,11 +73,12 @@ def mapIntToWord(line, intMap):
         oneLine.append(wordRepresentation)
     return oneLine
 
-totalData = getData("shakespeareWords.txt")
+totalData = getData("complete_bigrams.txt")
 wordMap, intMap = generateMaps(totalData)
 intData = mapWordToInt(totalData, wordMap)
 
 hmmModel = trainingHMM(intData)
-lineOne, states = hmmModel.sample(10)
-oneLine = mapIntToWord(lineOne, intMap)
-print oneLine
+for i in xrange(10):
+    lineOne, states = hmmModel.sample(10)
+    oneLine = mapIntToWord(lineOne, intMap)
+    print oneLine
