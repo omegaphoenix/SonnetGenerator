@@ -20,19 +20,18 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    H_STATES = 5
-    A, O = randomlyInitialize(H_STATES, numObs)
-    pi = generateStartProb(H_STATES)
+    for H_STATES in range(5, 9):
+        A, O = randomlyInitialize(H_STATES, numObs)
+        pi = generateStartProb(H_STATES)
 
-    # Now, going to try to run baum_welch
+        # Now, going to try to run baum_welch
+        trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
 
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
+        # Save matrices to file
+        writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
-    # Save matrices to file
-    writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
-
-    good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
-    print good_words
+        good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
+        print good_words
 
 def generate():
     trainingWords = getData("shakespeareWords.txt")
@@ -104,18 +103,25 @@ def generateCouplet(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
         print newLine
+        # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
             print "no rhyme"
             lastWord.remove(lastWord[i])
             lastWordRhymes.remove(lastWordRhymes[i])
         else:
+            # Check if it matches any of the previous lines
             for j in xrange(i):
-                if (state == prevState and nextState == lines[j][2]) or (lines[j][1] == prevState and state == lines[j][2]):
-                    if (lastWord[i] in lastWordRhymes[j]):
+                if (state == prevState and nextState == lines[j][2]):
+                    if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
+                        couplet = newLine + lines[j][0]
+                        return couplet, nextState
+                if (lines[j][1] == prevState and state == lines[j][2]):
+                    if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
                         couplet = lines[j][0] + newLine
-                        return couplet
+                        return couplet, state
+
             lines.append([newLine, state, nextState])
             # Randomly try new starting states
             if random.random() > 0.5:
@@ -125,14 +131,97 @@ def generateCouplet(A, O, pi, wordMap, intMap, prevState):
             print i
             i += 1
 
+def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
+    lines = []
+    lastWord = []
+    lastWordRhymes = []
+    i = 0
+    quatrain = ""
+    line1 = ""
+    line3 = ""
+    state = prevState
+    done = False
+    while not done:
+        newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
+        words = newLine.split(" ")
+        lastWord.append(words[len(words)-2])
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        print newLine
+        # Skip if no rhyming words
+        if len(lastWordRhymes[i]) == 0:
+            print "no rhyme"
+            lastWord.remove(lastWord[i])
+            lastWordRhymes.remove(lastWordRhymes[i])
+        else:
+            # Check if it matches any of the previous lines
+            for j in xrange(i):
+                if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
+                    line1 = lines[j]
+                    line3 = [newLine, state, nextState]
+                    done = True
+                    break
+                if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
+                    line1 = lines[j]
+                    line3 = [newLine, state, nextState]
+                    done = True
+                    break
+            lines.append([newLine, state, nextState])
+            # Randomly try new starting states
+            if random.random() > 0.5:
+                state = prevState
+            else:
+                state = nextState
+            print i
+            i += 1
+    # Reset variables
+    i = 0
+    lines = []
+    lastWord = []
+    lastWordRhymes = []
+    done = False
+    prevState = line1[2]
+    nextState2 = line3[1]
+    prevState2 = line3[2]
+    state = prevState
+
+    while not done:
+        newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
+        words = newLine.split(" ")
+        lastWord.append(words[len(words)-2])
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        print newLine
+        # Skip if no rhyming words
+        if len(lastWordRhymes[i]) == 0:
+            print "no rhyme"
+            lastWord.remove(lastWord[i])
+            lastWordRhymes.remove(lastWordRhymes[i])
+        else:
+            # Check if it matches any of the previous lines
+            for j in xrange(i):
+                if (state == prevState and nextState == nextState2) and (lines[j][1] == prevState2):
+                    if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
+                        return line1[0] + newLine + line3[0] + lines[j][0], lines[j][2]
+                if (state == prevState2) and (lines[j][1] == prevState and lines[j][2] == nextState2):
+                    if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
+                        return line1[0] + lines[j][0] + line3[0] + newLine, nextState
+            lines.append([newLine, state, nextState])
+            # Randomly try new starting states
+            if random.random() > 0.5:
+                state = prevState
+            else:
+                state = prevState2
+            print i
+            i += 1
+
+
 def generatePoem(A, O, pi, wordMap, intMap):
     poem = ""
     state = -1
-    for i in xrange(0):
-        line, state = generateLine(A, O, pi, wordMap, intMap, state)
+    for i in xrange(3):
+        line, state = generateQuatrain(A, O, pi, wordMap, intMap, state)
         poem += line
-        print line
-    poem += generateCouplet(A, O, pi, wordMap, intMap, 1)
+    line, state = generateCouplet(A, O, pi, wordMap, intMap, state)
+    poem += line
     return poem
 
 def countSyllabels(line):
@@ -578,8 +667,8 @@ def generateStartProb(numStates):
 def analyzeHiddenStates(O, wordMap, intMap, wordCount):
     """ This function finds the top ten words
     in the hidden states """
-    #for i in intMap:
-        #O[:, i] = O[:,i]/sum(O[:,i])
+    for i in intMap:
+        O[:, i] = O[:,i]/sum(O[:,i])
     Ot = O.transpose()
     best = []
     cur_best = []
