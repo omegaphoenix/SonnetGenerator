@@ -10,8 +10,8 @@ from nltk.corpus import cmudict
 import heapq
 trainingWords = []
 def main():
-    #trainingWords = getData("complete_shakespeare_words.txt")
-    trainingWords = getData("shakespeareWords.txt")
+    trainingWords = getData("complete_shakespeare_words.txt")
+    #trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap, wordCount = generateMaps(trainingWords)
 
     trainingSequence = mapWordToInt(trainingWords, wordMap)
@@ -20,7 +20,7 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    for H_STATES in range(9, 20):
+    for H_STATES in range(5, 15):
         A, O = randomlyInitialize(H_STATES, numObs)
         pi = generateStartProb(H_STATES)
 
@@ -28,20 +28,24 @@ def main():
         trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
 
         # Save matrices to file
-        writeHMM('test.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
+        writeHMM('test_complete{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
         good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
         print good_words
 
 def generate():
-    trainingWords = getData("shakespeareWords.txt")
+    trainingWords = getData("complete_shakespeare_words.txt")
+    #trainingWords = getData("shakespeareWords.txt")
     wordMap, intMap, wordCount = generateMaps(trainingWords)
-    for H_STATES in range(5,9):
+    for H_STATES in range(5,15):
         np.random.seed(13)
         random.seed(13)
-        A, O, pi = loadHMM('test{}.txt'.format(H_STATES))
+        A, O, pi = loadHMM('test_complete{}.txt'.format(H_STATES))
         poem = ""
         poem += generatePoem(A, O, pi, wordMap, intMap)
+        output_file = 'poem_complete{}.txt'.format(H_STATES)
+        with open(output_file, 'w') as f:
+            f.write(poem)
         print poem
     
 def generateWord(A, O, pi, wordMap, intMap, prevState):
@@ -198,10 +202,10 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         else:
             # Check if it matches any of the previous lines
             for j in xrange(i):
-                if (state == prevState and nextState == nextState2) and (lines[j][1] == prevState2):
+                if True or (state == prevState and nextState == nextState2) and (lines[j][1] == prevState2):
                     if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
                         return line1[0] + newLine + line3[0] + lines[j][0], lines[j][2]
-                if (state == prevState2) and (lines[j][1] == prevState and lines[j][2] == nextState2):
+                if True or (state == prevState2) and (lines[j][1] == prevState and lines[j][2] == nextState2):
                     if (lastWord[i] != lastWord[j]) and (lastWord[i] in lastWordRhymes[j]):
                         return line1[0] + lines[j][0] + line3[0] + newLine, nextState
             lines.append([newLine, state, nextState])
@@ -704,5 +708,5 @@ if __name__ == '__main__':
     #test_file()
     np.random.seed(13)
     random.seed(13)
-    #main()
+    main()
     generate()
