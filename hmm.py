@@ -20,7 +20,7 @@ def main():
     # A, O are randomly initialized based on the number of states
     # and observations.
 
-    for H_STATES in range(5, 9):
+    for H_STATES in range(9, 20):
         A, O = randomlyInitialize(H_STATES, numObs)
         pi = generateStartProb(H_STATES)
 
@@ -28,7 +28,7 @@ def main():
         trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 5000)
 
         # Save matrices to file
-        writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
+        writeHMM('test.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
         good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
         print good_words
@@ -103,7 +103,7 @@ def generateCouplet(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -188,7 +188,7 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
