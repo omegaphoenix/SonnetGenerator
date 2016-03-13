@@ -21,7 +21,7 @@ def main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence):
     pi = generateStartProb(H_STATES)
 
     # Now, going to try to run baum_welch
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 1000)
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 400)
 
     # Save matrices to file
     writeHMM('test_complete_bigrams{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
@@ -100,7 +100,7 @@ def generateCouplet(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -142,7 +142,7 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -187,7 +187,7 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -719,6 +719,7 @@ if __name__ == '__main__':
     #test_file()
     np.random.seed(13)
     random.seed(13)
+    #trainingWords = getData("shakespeareWordsBigrams.txt")
     trainingWords = getData("complete_bigrams.txt")
     wordMap, intMap, wordCount = generateMaps(trainingWords)
 
