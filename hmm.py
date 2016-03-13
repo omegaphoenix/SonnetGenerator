@@ -8,6 +8,7 @@ from sklearn.preprocessing import normalize
 from itertools import chain
 from nltk.corpus import cmudict
 import heapq
+from chained import Chain
 trainingWords = []
 def main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence):
     #trainingWords = getData("complete_shakespeare_words.txt")
@@ -21,13 +22,33 @@ def main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence):
     pi = generateStartProb(H_STATES)
 
     # Now, going to try to run baum_welch
-    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 400)
+    trainedPi, trainedA, trainedO = baum_welch(trainingSequence, A, O, pi, 1000)
 
     # Save matrices to file
     writeHMM('test_complete_bigrams{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
     good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
     print good_words
+
+def chaining(trainingWords):
+    np.random.seed(24)
+    random.seed(24)
+    markov_chain = Chain(2)
+    for sonnet in trainingWords:
+        markov_chain.addSequence(sonnet)
+    seq = markov_chain.getSequence()
+    print chainLine(markov_chain)
+
+def chainLine(markov_chain):
+    line = ""
+    while countSyllabels(line) != 10:
+        new_line = markov_chain.getSequence()
+        line = ""
+        for word in new_line:
+            if countSyllabels(line) < 10:
+                line += word + " "
+    return line + "\n"
+
 
 def generate(H_STATES, trainingWords, wordMap, intMap, wordCount):
     #trainingWords = getData("complete_shakespeare_words.txt")
@@ -36,7 +57,7 @@ def generate(H_STATES, trainingWords, wordMap, intMap, wordCount):
     A, O, pi = loadHMM('test_complete_bigrams{}.txt'.format(H_STATES))
     poem = ""
     poem += generatePoem(A, O, pi, wordMap, intMap)
-    output_file = 'complete_bigram_poem{}.txt'.format(H_STATES)
+    output_file = 'complete_bigram_rhyme_poem{}.txt'.format(H_STATES)
     with open(output_file, 'w') as f:
         f.write(poem)
     print poem
@@ -100,7 +121,7 @@ def generateCouplet(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -142,7 +163,7 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -187,7 +208,7 @@ def generateQuatrain(A, O, pi, wordMap, intMap, prevState):
         newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
         words = newLine.split(" ")
         lastWord.append(words[len(words)-2])
-        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
+        lastWordRhymes.append(rhyme(lastWord[i], 2, wordMap))
         print newLine
         # Skip if no rhyming words
         if len(lastWordRhymes[i]) == 0:
@@ -530,7 +551,7 @@ def baum_welch(training, A, O, pi, iterations):
     step = 0
     norm_diff = 1
 
-    while norm_diff > 1e-8*num_words*num_states and step < iterations:
+    while norm_diff > 3e-9*num_words*num_states and step < iterations:
         print step
         step += 1
         A1 = np.zeros_like(A)
@@ -725,5 +746,9 @@ if __name__ == '__main__':
 
     trainingSequence = mapWordToInt(trainingWords, wordMap)
     for H_STATES in range(5,10):
-        main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence)
+        #main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence)
+        pass
+    for H_STATES in range(5,7):
         generate(H_STATES, trainingWords, wordMap, intMap, wordCount)
+        pass
+    chaining(trainingWords)

@@ -32,7 +32,7 @@ def trainingHMM(sonnets):
     for sonnet in sonnets:
         lengths.append(len(sonnet))
 
-    hmmModel = hmm.MultinomialHMM(n_components = 10).fit(concatSonnet, lengths)
+    hmmModel = hmm.MultinomialHMM(n_components = 10, n_iter=500).fit(concatSonnet, lengths)
 
     return hmmModel
 
@@ -73,7 +73,8 @@ def mapIntToWord(line, intMap):
         oneLine.append(wordRepresentation)
     return oneLine
 
-totalData = getData("complete_bigrams.txt")
+totalData = getData("shakespeareWordsBigrams.txt")
+#totalData = getData("complete_bigrams.txt")
 wordMap, intMap = generateMaps(totalData)
 intData = mapWordToInt(totalData, wordMap)
 
