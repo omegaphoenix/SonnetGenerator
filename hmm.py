@@ -93,13 +93,46 @@ def generateLine(A, O, pi, wordMap, intMap, prevState):
             state = prevState
     return line + "\n", state
 
+def generateCouplet(A, O, pi, wordMap, intMap, prevState):
+    lines = []
+    lastWord = []
+    lastWordRhymes = []
+    i = 0
+    couplet = ""
+    state = prevState
+    while True:
+        newLine, nextState = generateLine(A, O, pi, wordMap, intMap, state)
+        words = newLine.split(" ")
+        lastWord.append(words[len(words)-2])
+        lastWordRhymes.append(rhyme(lastWord[i], 1, wordMap))
+        print newLine
+        if len(lastWordRhymes[i]) == 0:
+            print "no rhyme"
+            lastWord.remove(lastWord[i])
+            lastWordRhymes.remove(lastWordRhymes[i])
+        else:
+            for j in xrange(i):
+                if (state == prevState and nextState == lines[j][2]) or (lines[j][1] == prevState and state == lines[j][2]):
+                    if (lastWord[i] in lastWordRhymes[j]):
+                        couplet = lines[j][0] + newLine
+                        return couplet
+            lines.append([newLine, state, nextState])
+            # Randomly try new starting states
+            if random.random() > 0.5:
+                state = prevState
+            else:
+                state = nextState
+            print i
+            i += 1
+
 def generatePoem(A, O, pi, wordMap, intMap):
     poem = ""
     state = -1
-    for i in xrange(14):
+    for i in xrange(0):
         line, state = generateLine(A, O, pi, wordMap, intMap, state)
         poem += line
         print line
+    poem += generateCouplet(A, O, pi, wordMap, intMap, 1)
     return poem
 
 def countSyllabels(line):
@@ -114,6 +147,26 @@ def countSyllabels(line):
         except KeyError:
             pass
     return syl
+
+def checkRyhme(line1, line2, wordMap):
+    words1 = line1.split(" ")
+    last_word1 = words1[len(words1)-2]
+    words2 = line2.split(" ")
+    last_word2 = words2[len(words2)-2]
+    if last_word1 in rhyme(last_word2, 1, wordMap):
+        return True
+    else:
+        return False
+
+def rhyme(inp, level, wordMap):
+    entries = cmudict.entries()
+    syllables = [(word, syl) for word, syl in entries if word == inp]
+    rhymes = []
+    for (word, syllable) in syllables:
+        rhymes += [word for word, pron in entries if pron[-level:] == syllable[-level:]]
+    if inp in rhymes:
+        rhymes.remove(inp)
+    return set(rhymes)
 
 def test():
     # Tests from http://people.eng.unimelb.edu.au/tcohn/comp90042/HMM.py
