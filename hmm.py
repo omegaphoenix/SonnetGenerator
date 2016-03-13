@@ -8,7 +8,15 @@ from sklearn.preprocessing import normalize
 from itertools import chain
 from nltk.corpus import cmudict
 import heapq
-trainingWords = []
+
+def writeTopToFile(topWords):
+    outputFile = open("topWords.txt", "w")
+    for stateList in topWords:
+        for word in stateList:
+            outputFile.write(word + "\n")
+        outputFile.write("\n")
+    outputFile.close()
+
 def main():
     #trainingWords = getData("complete_shakespeare_words.txt")
     trainingWords = getData("shakespeareWords.txt")
@@ -32,7 +40,7 @@ def main():
     writeHMM('test{}.txt'.format(H_STATES), trainedA, trainedO, trainedPi)
 
     good_words = analyzeHiddenStates(O, wordMap, intMap, wordCount)
-    print good_words
+    writeTopToFile(good_words)
 
 def generate():
     trainingWords = getData("shakespeareWords.txt")
