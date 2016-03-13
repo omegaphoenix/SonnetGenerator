@@ -1,0 +1,48 @@
+State 1
+Key: VBG	 Value:1
+Key: RB	 Value:2
+Key: NN	 Value:8
+Key: VBD	 Value:1
+Key: VBN	 Value:1
+Key: VBP	 Value:2
+Key: JJ	 Value:5
+
+State 2
+Key: RB	 Value:4
+Key: NN	 Value:7
+Key: VBD	 Value:2
+Key: VBN	 Value:1
+Key: VBP	 Value:1
+Key: JJ	 Value:3
+Key: NNS	 Value:2
+
+State 3
+Key: JJ	 Value:4
+Key: NN	 Value:6
+Key: VBD	 Value:3
+Key: VBP	 Value:1
+Key: RB	 Value:1
+Key: NNS	 Value:5
+
+State 4
+Key: VBG	 Value:3
+Key: JJ	 Value:1
+Key: NN	 Value:6
+Key: VBD	 Value:1
+Key: VBN	 Value:1
+Key: PRP	 Value:1
+Key: RB	 Value:1
+Key: VBZ	 Value:1
+Key: NNS	 Value:5
+
+State 5
+Key: VB	 Value:1
+Key: VBG	 Value:1
+Key: NN	 Value:7
+Key: VBD	 Value:2
+Key: JJS	 Value:1
+Key: VBP	 Value:1
+Key: JJ	 Value:3
+Key: IN	 Value:2
+Key: NNS	 Value:2
+

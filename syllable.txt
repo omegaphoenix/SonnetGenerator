@@ -1,0 +1,24 @@
+State 1
+Key: 1	 Value:7
+Key: 2	 Value:9
+Key: 3	 Value:1
+
+State 2
+Key: 1	 Value:10
+Key: 2	 Value:6
+Key: 3	 Value:2
+
+State 3
+Key: 1	 Value:3
+Key: 2	 Value:11
+Key: 3	 Value:4
+
+State 4
+Key: 1	 Value:10
+Key: 2	 Value:6
+Key: 3	 Value:2
+
+State 5
+Key: 1	 Value:7
+Key: 2	 Value:7
+
