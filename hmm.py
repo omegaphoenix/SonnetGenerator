@@ -740,15 +740,15 @@ if __name__ == '__main__':
     #test_file()
     np.random.seed(13)
     random.seed(13)
-    #trainingWords = getData("shakespeareWordsBigrams.txt")
-    trainingWords = getData("complete_bigrams.txt")
+    trainingWords = getData("shakespeareWordsBigrams.txt")
+    #trainingWords = getData("complete_bigrams.txt")
     wordMap, intMap, wordCount = generateMaps(trainingWords)
 
     trainingSequence = mapWordToInt(trainingWords, wordMap)
     for H_STATES in range(5,10):
-        #main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence)
+        main(H_STATES, trainingWords, wordMap, intMap, wordCount, trainingSequence)
         pass
-    for H_STATES in range(5,7):
+    for H_STATES in range(5,10):
         generate(H_STATES, trainingWords, wordMap, intMap, wordCount)
         pass
     chaining(trainingWords)

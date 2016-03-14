@@ -1,7 +1,7 @@
 import random
 
 
-input_file = 'poem8.txt'
+input_file = 'complete_bigram_rhyme_poem5.txt'
 output_file = 'output.txt'
 i = 0
 random.seed(13)
@@ -11,9 +11,9 @@ for line in open(input_file, 'r'):
     i += 1
     if i % 4 == 0 or i == 14:
         if random.random() < 0.8:
-            new_line += "."
+            new_line += ".\n"
         else:
-            new_line += "?"
+            new_line += "?\n"
     else:
         if random.random() < 0.8:
             new_line += ","

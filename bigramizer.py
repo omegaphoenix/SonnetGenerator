@@ -53,6 +53,8 @@ def readInFile(inFile):
     return words
 
 words = readInFile('complete_shakespeare_words.txt')
-#words = readInFile('shakespeareWords.txt')
 bigrams = countBigrams(words)
 writeToFile('complete_bigrams.txt', words, bigrams)
+words = readInFile('shakespeareWords.txt')
+bigrams = countBigrams(words)
+writeToFile('shakespeareWordsBigrams.txt', words, bigrams)
